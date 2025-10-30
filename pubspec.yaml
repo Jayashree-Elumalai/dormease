@@ -1,0 +1,47 @@
+name: dormease_app
+description: "dorm app"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # Firebase (keep versions compatible with each other)
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.0
+  cloud_firestore: ^5.4.0
+  firebase_storage: ^12.3.2  # ✅ NEW - For image uploads
+
+  # Google Fonts (optional for nicer UI)
+  google_fonts: ^6.2.1
+
+  # Date formatting
+  intl: ^0.19.0
+
+  # 🔍 Typeahead (for searchable dropdown)
+  flutter_typeahead: ^5.2.0
+
+  # ✅ NEW - Image picker and compression
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.3.0
+  path_provider: ^2.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Assets (make sure logo is placed at assets/images/)
+  assets:
+    - assets/images/
