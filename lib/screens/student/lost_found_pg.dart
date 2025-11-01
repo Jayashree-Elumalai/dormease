@@ -1147,6 +1147,22 @@ class _ReportFoundItemPageState extends State<ReportFoundItemPage> {
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
               primary: Color(0xFF1800AD),
+              onPrimary: Colors.white, // Header text color
+              onSurface: const Color(0xFF1800AD),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF1800AD), // Button text color (OK/CANCEL)
+                textStyle: GoogleFonts.firaSans(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            dialogTheme: DialogTheme(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16), // Rounded corners
+              ),
             ),
           ),
           child: child!,
@@ -1816,13 +1832,37 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         // ✅ ADDED: Actions for delete and cancel
-        actions: [
-          if (widget.showCancelButton) // ✅ ADDED: Cancel claim button
-            IconButton(
-              icon: const Icon(Icons.cancel, color: Colors.white),
+        actions: [if (widget.showCancelButton) // ✅ Cancel claim button - Now with red styling
+          Padding(
+            padding: const EdgeInsets.only(right: 8), // ✅ ADDED: spacing from edge
+            child: ElevatedButton(
               onPressed: () => _cancelClaim(context),
-              tooltip: 'Cancel Claim',
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // ✅ ADDED: Red background
+                foregroundColor: Colors.white, // ✅ ADDED: White text
+                padding: const EdgeInsets.symmetric(horizontal: 10), // ✅ ADDED: padding
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20), // ✅ ADDED: rounded corners
+                  side: const BorderSide(color: Colors.white, width: 2), // ✅ ADDED: white border
+                ),
+                elevation: 3, // ✅ ADDED: shadow for depth
+              ),
+              child: Row( // ✅ ADDED: Icon + Text for better visibility
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cancel, size: 18), // ✅ ADDED: icon
+                  const SizedBox(width: 6), // ✅ ADDED: spacing
+                  Text(
+                    'Cancel Claim',
+                    style: GoogleFonts.dangrek(
+                      fontSize: 15, // ✅ CHANGED: 16→14 to fit better
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
+          ),
           if (widget.showDeleteButton) // ✅ ADDED: Delete button
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.white),

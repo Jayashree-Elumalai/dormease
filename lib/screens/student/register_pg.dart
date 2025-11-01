@@ -140,6 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'rejectionReason': null, // ✅ NEW: For admin rejection
         'approvedAt': null, // ✅ NEW: Timestamp when approved
         'approvedBy': null, // ✅ NEW: Admin UID who approved
+        'fcmTokens': [],
       };
 
       await _firestore.collection('users').doc(uid).set(userDoc);

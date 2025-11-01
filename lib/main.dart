@@ -9,9 +9,6 @@ import 'screens/verify_email_pg.dart';
 import 'screens/student/home_pg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
