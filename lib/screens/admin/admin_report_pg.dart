@@ -10,6 +10,7 @@ import 'admin_annnouncements_pg.dart';
 import 'admin_lostnfound_pg.dart';
 import 'admin_parcel_pg.dart';
 import 'admin_sos_pg.dart';
+import '/services/auth_service.dart';
 
 class AdminReportPg extends StatefulWidget {
   const AdminReportPg({super.key});
@@ -345,16 +346,7 @@ class _AdminReportPgState extends State<AdminReportPg> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (route) => false,
-                  );
-                }
-              },
+              onPressed:() => AuthService.logout(context),
               child: const Text(
                 "Logout",
                 style: TextStyle(color: Colors.black, fontSize: 14),

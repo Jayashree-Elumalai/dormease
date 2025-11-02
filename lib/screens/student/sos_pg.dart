@@ -323,210 +323,283 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.red))
-          : SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            children: [
-              // Header
-              Text(
-                'SOS EMERGENCY ALERT',
-                style: GoogleFonts.firaSans(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                  letterSpacing: 1,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Tap to notify admins',
-                style: GoogleFonts.firaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'ONLY USE IN REAL EMERGENCIES',
+          : Column( // ✅ CHANGED: SingleChildScrollView → Column (no scrolling)
+        children: [
+          // ✅ Header Section (Fixed height)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Column(
+              children: [
+                Text(
+                  'SOS EMERGENCY ALERT',
                   style: GoogleFonts.firaSans(
-                    fontSize: 12,
+                    fontSize: 20, // ✅ REDUCED: 24→20
                     fontWeight: FontWeight.w900,
-                    color: Colors.red,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // SOS Button with surrounding category buttons
-              SizedBox(
-                height: 240,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Fire - Top Left
-                    Positioned(
-                      top: 10,
-                      left: 0,
-                      child: _buildCategoryButtonCompact(
-                        icon: '🔥',
-                        label: 'Fire',
-                        value: 'fire',
-                        color: Colors.red[600]!,
-                      ),
-                    ),
-                    // Medical - Top Right
-                    Positioned(
-                      top: 10,
-                      right: 0,
-                      child: _buildCategoryButtonCompact(
-                        icon: '🏥',
-                        label: 'Medical',
-                        value: 'medical',
-                        color: Colors.blue[600]!,
-                      ),
-                    ),
-                    // Safety - Bottom Left
-                    Positioned(
-                      bottom: 10,
-                      left: 0,
-                      child: _buildCategoryButtonCompact(
-                        icon: '⚠️',
-                        label: 'Safety',
-                        value: 'safety',
-                        color: Colors.orange[600]!,
-                      ),
-                    ),
-                    // Others - Bottom Right
-                    Positioned(
-                      bottom: 10,
-                      right: 0,
-                      child: _buildCategoryButtonCompact(
-                        icon: '❓',
-                        label: 'Others',
-                        value: 'others',
-                        color: Colors.grey[600]!,
-                      ),
-                    ),
-
-                    // Center SOS Button
-                    GestureDetector(
-                      onTap: _sendSosAlert,
-                      child: AnimatedBuilder(
-                        animation: _pulseController,
-                        builder: (context, child) {
-                          return Container(
-                            width: 160,
-                            height: 160,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.red,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.red.withOpacity(0.5 * _pulseController.value),
-                                  blurRadius: 30 * _pulseController.value,
-                                  spreadRadius: 15 * _pulseController.value,
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.notifications_active, color: Colors.white, size: 50),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'SOS',
-                                  style: GoogleFonts.firaSans(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Location Input
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-
-                child: TextField(
-                  controller: _locationController,
-                  style: GoogleFonts.firaSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
                     color: Colors.black,
+                    letterSpacing: 1,
                   ),
-                  decoration: InputDecoration(
-                    icon: const Icon(Icons.location_on, color: Color(0xFF1800AD), size: 22),
-                    border: InputBorder.none,
-                    hintText: 'Your location',
-                    hintStyle: GoogleFonts.firaSans(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[600],
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'ONLY USE IN REAL EMERGENCIES',
+                    style: GoogleFonts.firaSans(
+                      fontSize: 11, // ✅ REDUCED: 12→11
+                      fontWeight: FontWeight.w900,
+                      color: Colors.red,
+                      letterSpacing: 0.5,
                     ),
-                    isDense: true, // ✅ ADDED
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10,horizontal: 10),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-
-              // Optional Description
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: TextField(
-                  controller: _descriptionController,
-                  maxLines: 4,
-                  maxLength: 200,
-                  style: GoogleFonts.firaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Additional details (optional)',
-                    hintStyle: GoogleFonts.firaSans(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                    ),
-                    counterStyle: GoogleFonts.firaSans(fontSize: 11),
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+
+          // ✅ Emergency Type Buttons (Horizontal Row)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildCategoryButtonCompact(
+                  icon: '🔥',
+                  label: 'Fire',
+                  value: 'fire',
+                  color: Colors.red[600]!,
+                ),
+                _buildCategoryButtonCompact(
+                  icon: '🏥',
+                  label: 'Medical',
+                  value: 'medical',
+                  color: Colors.blue[600]!,
+                ),
+                _buildCategoryButtonCompact(
+                  icon: '⚠️',
+                  label: 'Safety',
+                  value: 'safety',
+                  color: Colors.orange[600]!,
+                ),
+                _buildCategoryButtonCompact(
+                  icon: '❓',
+                  label: 'Others',
+                  value: 'others',
+                  color: Colors.grey[600]!,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ✅ Center SOS Button (Larger, no surrounding buttons)
+          GestureDetector(
+            onTap: _sendSosAlert,
+            child: AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                return Container(
+                  width: 180, // ✅ INCREASED: 160→180
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.5 * _pulseController.value),
+                        blurRadius: 30 * _pulseController.value,
+                        spreadRadius: 15 * _pulseController.value,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.notifications_active, color: Colors.white, size: 56), // ✅ INCREASED: 50→56
+                      const SizedBox(height: 8),
+                      Text(
+                        'SOS',
+                        style: GoogleFonts.firaSans(
+                          fontSize: 36, // ✅ INCREASED: 30→36
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ✅ Location Dropdown with Custom Input
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ✅ Dropdown for quick selection
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: null, // Always null so it shows hint
+                      isExpanded: true,
+                      isDense: true,
+                      hint: Row(
+                        children: [
+                          const Icon(Icons.location_on, color: Color(0xFF1800AD), size: 20),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Quick select location',
+                            style: GoogleFonts.firaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1800AD)),
+                      items: [
+                        // ✅ Student's default location (from loaded data)
+                        if (_locationController.text.isNotEmpty)
+                          DropdownMenuItem(
+                            value: _locationController.text,
+                            child: Text(
+                              '🏠 My Room: ${_locationController.text}',
+                              style: GoogleFonts.firaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1800AD),
+                              ),
+                            ),
+                          ),
+                        // ✅ Common locations
+                        DropdownMenuItem(
+                          value: 'Lobby',
+                          child: Text('🏢 Lobby', style: GoogleFonts.firaSans(fontSize: 14)),
+                        ),
+
+                        DropdownMenuItem(
+                          value: 'Cafeteria',
+                          child: Text('🍽️ Cafeteria', style: GoogleFonts.firaSans(fontSize: 14)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Study Room',
+                          child: Text('📚 Study Room', style: GoogleFonts.firaSans(fontSize: 14)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Gym',
+                          child: Text('🏋️ Gym', style: GoogleFonts.firaSans(fontSize: 14)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Laundry Room',
+                          child: Text('🧺 Laundry Room', style: GoogleFonts.firaSans(fontSize: 14)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Parking Lot',
+                          child: Text('🚗 Parking Lot', style: GoogleFonts.firaSans(fontSize: 14)),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Common Area',
+                          child: Text('👥 Common Area', style: GoogleFonts.firaSans(fontSize: 14)),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _locationController.text = value; // ✅ Update text field
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // ✅ Custom text input (can edit selected location)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextField(
+                    controller: _locationController,
+                    style: GoogleFonts.firaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                    decoration: InputDecoration(
+                      icon: const Icon(Icons.edit, color: Color(0xFF1800AD), size: 18),
+                      border: InputBorder.none,
+                      hintText: 'Or type custom location',
+                      hintStyle: GoogleFonts.firaSans(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
+                        fontSize: 13,
+                      ),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // ✅ Optional Description (Compact, Reduced height)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.all(12), // ✅ REDUCED: 14→12
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: TextField(
+                controller: _descriptionController,
+                maxLines: 3, // ✅ REDUCED: 4→3
+                maxLength: 150, // ✅ REDUCED: 200→150
+                style: GoogleFonts.firaSans(
+                  fontSize: 13, // ✅ REDUCED: 14→13
+                  fontWeight: FontWeight.w600,
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Additional details (optional)',
+                  hintStyle: GoogleFonts.firaSans(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                  counterStyle: GoogleFonts.firaSans(fontSize: 10),
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          ),
+
+          const Spacer(), // ✅ Push nav bar to bottom
+        ],
       ),
       bottomNavigationBar: StreamBuilder<int>(
         stream: _getSosAlertCount(),
@@ -570,8 +643,8 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
     return GestureDetector(
       onTap: () => setState(() => _selectedCategory = value),
       child: Container(
-        width: 85,
-        height: 85,
+        width: 75, // ✅ REDUCED: 85→75 to fit row
+        height: 75,
         decoration: BoxDecoration(
           color: isSelected ? color.withOpacity(0.2) : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -590,12 +663,12 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 28)),
-            const SizedBox(height: 4),
+            Text(icon, style: const TextStyle(fontSize: 24)), // ✅ REDUCED: 28→24
+            const SizedBox(height: 3),
             Text(
               label,
               style: GoogleFonts.firaSans(
-                fontSize: 12,
+                fontSize: 11, // ✅ REDUCED: 12→11
                 fontWeight: FontWeight.w900,
                 color: isSelected ? color : Colors.black,
               ),

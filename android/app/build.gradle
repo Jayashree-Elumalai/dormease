@@ -1,0 +1,50 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.dormease_app"
+    compileSdk = 35
+    ndkVersion = "27.0.12077973"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled = true // ✅ Groovy syntax
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    defaultConfig {
+        applicationId = "com.example.dormease_app"
+        minSdk = 23
+        targetSdk = 34
+        def flutterVersionCode = project.hasProperty('flutterVersionCode') ? project.flutterVersionCode.toInteger() : 1
+        def flutterVersionName = project.hasProperty('flutterVersionName') ? project.flutterVersionName : "1.0.0"
+        versionCode flutterVersionCode
+        versionName flutterVersionName
+        multiDexEnabled = true // ✅ ADDED for Firebase
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.0.4" // ✅ Groovy syntax
+}
+
+// ✅ IMPORTANT: Apply Google Services plugin at the END
+apply plugin: 'com.google.gms.google-services'

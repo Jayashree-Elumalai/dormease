@@ -7,6 +7,8 @@ import 'admin/admin_home_pg.dart';
 import 'student/register_pg.dart';
 import 'verify_email_pg.dart';
 import 'waiting_approval_pg.dart';
+import '/services/fcm_service.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -75,6 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // ✅ ADMIN FLOW - No email verification or approval needed
       if (role == 'admin') {
+        debugPrint('🔵 Admin login detected, initializing FCM...');
         // Update isProfileVerified to true on first login
         if (data['isProfileVerified'] != true) {
           await FirebaseFirestore.instance
@@ -83,6 +86,12 @@ class _LoginScreenState extends State<LoginScreen> {
               .update({'isProfileVerified': true});
         }
 
+        // ✅ Initialize FCM for admins
+        debugPrint('🔵 Calling FCMService.initializeFCM()...');
+        await FCMService.initializeFCM();
+        debugPrint('🔵 FCM initialization completed');
+
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const AdminHomeScreen()),

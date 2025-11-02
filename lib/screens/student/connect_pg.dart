@@ -9,6 +9,7 @@ import 'home_pg.dart';
 import 'parcel_pg.dart';
 import 'report_issue_pg.dart';
 import 'sos_pg.dart';
+import '/services/auth_service.dart';
 
 class ConnectPage extends StatefulWidget {
   const ConnectPage({super.key});
@@ -164,16 +165,7 @@ class _ConnectPageState extends State<ConnectPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (route) => false,
-                  );
-                }
-              },
+              onPressed:() => AuthService.logout(context),
               child: const Text(
                 "Logout",
                 style: TextStyle(color: Colors.black, fontSize: 14),

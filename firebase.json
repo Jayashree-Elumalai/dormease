@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"dormease-app","appId":"1:499492677777:android:2ee2d96d1e1b398f37f730","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"dormease-app","configurations":{"android":"1:499492677777:android:2ee2d96d1e1b398f37f730","web":"1:499492677777:web:eb40b354dac388d437f730"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "dormease-app",
+          "appId": "1:499492677777:android:2ee2d96d1e1b398f37f730",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "dormease-app",
+          "configurations": {
+            "android": "1:499492677777:android:2ee2d96d1e1b398f37f730",
+            "web": "1:499492677777:web:eb40b354dac388d437f730"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

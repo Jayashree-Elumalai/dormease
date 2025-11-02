@@ -9,6 +9,7 @@ import 'admin_parcel_pg.dart';
 import 'admin_report_pg.dart';
 import 'admin_sos_pg.dart';
 import 'admin_verification_pg.dart'; // ✅ NEW import
+import '../../services/auth_service.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
@@ -25,6 +26,31 @@ class AdminHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ TEMPORARY: Debug FCM tokens
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .get()
+        .then((doc) {
+      final tokens = doc.data()?['fcmTokens'] as List?;
+      debugPrint('🔍 Admin FCM Tokens: $tokens');
+      if (tokens == null || tokens.isEmpty) {
+        debugPrint('⚠️ WARNING: Admin has NO FCM tokens!');
+
+        // ✅ Show on-screen warning
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ WARNING: FCM tokens not found. Notifications may not work!'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 5),
+            ),
+          );
+        }
+      } else {
+        debugPrint('✅ Admin has ${tokens.length} FCM token(s)');
+      }
+    });
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -65,14 +91,8 @@ class AdminHomeScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                            (route) => false,
-                      );
-                    },
+                    onPressed:  () => AuthService.logout(context),
+
                     child: const Text(
                       "Logout",
                       style: TextStyle(color: Colors.black, fontSize: 14),

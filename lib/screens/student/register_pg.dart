@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../verify_email_pg.dart';
 import '../login_pg.dart';
 
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 

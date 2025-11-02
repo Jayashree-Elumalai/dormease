@@ -9,6 +9,7 @@ class FCMService {
   /// Initialize FCM and save token to Firestore
   static Future<void> initializeFCM() async {
     try {
+      debugPrint('🔵 Starting FCM initialization...');
       // Request permission (iOS/Web)
       NotificationSettings settings = await _messaging.requestPermission(
         alert: true,
@@ -20,6 +21,8 @@ class FCMService {
         sound: true,
       );
 
+      debugPrint('🔵 FCM permission status: ${settings.authorizationStatus}');
+
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         debugPrint('✅ FCM: User granted permission');
       } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
@@ -30,13 +33,28 @@ class FCMService {
       }
 
       // Get FCM token
+      debugPrint('🔵 Requesting FCM token...');
       String? token = await _messaging.getToken();
 
       if (token != null) {
-        debugPrint('✅ FCM Token: $token');
+        debugPrint('✅ FCM Token received: $token');
+        debugPrint('🔵 Saving token to Firestore...');
         await _saveFCMToken(token);
+        debugPrint('✅ Token save operation completed');
       } else {
         debugPrint('❌ FCM: Failed to get token');
+
+        // ✅ RETRY: Try again after 2 seconds
+        debugPrint('🔄 Retrying FCM token request in 2 seconds...'); // ✅ ADDED
+        await Future.delayed(const Duration(seconds: 2));
+        token = await _messaging.getToken();
+
+        if (token != null) {
+          debugPrint('✅ FCM Token received on retry: $token');
+          await _saveFCMToken(token);
+        } else {
+          debugPrint('❌ FCM: Token still null after retry');
+        }
       }
 
       // Listen for token refresh
@@ -44,47 +62,43 @@ class FCMService {
         debugPrint('🔄 FCM Token refreshed: $newToken');
         _saveFCMToken(newToken);
       });
+      debugPrint('✅ FCM initialization complete');
     } catch (e) {
       debugPrint('❌ FCM initialization error: $e');
+      debugPrint('❌ Stack trace: ${StackTrace.current}');
     }
   }
 
   /// Save FCM token to Firestore user document
   static Future<void> _saveFCMToken(String token) async {
     try {
+      debugPrint('🔵 Attempting to save FCM token...'); // ✅ ADDED
+
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         debugPrint('❌ FCM: No user logged in');
         return;
       }
 
+      debugPrint('🔵 Current user UID: ${user.uid}'); // ✅ ADDED
+
       final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
-      // Check if fcmTokens field exists
+      // ✅ SIMPLIFIED: Just set/update the array, don't check first
+      await userRef.set({
+        'fcmTokens': FieldValue.arrayUnion([token]),
+      }, SetOptions(merge: true)); // ✅ merge: true preserves other fields
+
+      debugPrint('✅ FCM: Token saved to Firestore');
+
+      // ✅ VERIFY: Read back to confirm
       final doc = await userRef.get();
+      final tokens = doc.data()?['fcmTokens'] as List?;
+      debugPrint('🔍 Verification: fcmTokens in Firestore: $tokens'); // ✅ ADDED
 
-      if (!doc.exists) {
-        debugPrint('❌ FCM: User document does not exist');
-        return;
-      }
-
-      final data = doc.data();
-
-      // If fcmTokens doesn't exist, create it
-      if (data == null || !data.containsKey('fcmTokens')) {
-        await userRef.update({
-          'fcmTokens': [token],
-        });
-        debugPrint('✅ FCM: Created fcmTokens array with token');
-      } else {
-        // Add token to array (arrayUnion prevents duplicates)
-        await userRef.update({
-          'fcmTokens': FieldValue.arrayUnion([token]),
-        });
-        debugPrint('✅ FCM: Token added to fcmTokens array');
-      }
     } catch (e) {
       debugPrint('❌ FCM: Error saving token: $e');
+      debugPrint('❌ Stack trace: ${StackTrace.current}'); // ✅ ADDED
     }
   }
 

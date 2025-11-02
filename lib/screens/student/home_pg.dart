@@ -12,6 +12,7 @@ import 'parcel_pg.dart';
 import 'report_issue_pg.dart';
 import 'sos_pg.dart';
 import '../login_pg.dart';
+import '/services/auth_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -69,15 +70,7 @@ class HomeScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const LoginScreen()), // ✅ correct
-                            (route) => false,
-                      );
-                    },
+                    onPressed: () => AuthService.logout(context),
                     child: const Text(
                       "Logout",
                       style: TextStyle(color: Colors.black, fontSize: 14),

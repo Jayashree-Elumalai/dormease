@@ -9,6 +9,7 @@ import 'home_pg.dart';
 import 'connect_pg.dart';
 import 'report_issue_pg.dart';
 import 'sos_pg.dart';
+import '/services/auth_service.dart';
 
 class ParcelPage extends StatefulWidget {
   const ParcelPage({super.key});
@@ -139,16 +140,7 @@ class _ParcelPageState extends State<ParcelPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              onPressed: () async {
-                await FirebaseAuth.instance.signOut();
-                if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (route) => false,
-                  );
-                }
-              },
+              onPressed: () => AuthService.logout(context),
               child: const Text(
                 "Logout",
                 style: TextStyle(color: Colors.black, fontSize: 14),

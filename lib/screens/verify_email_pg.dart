@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'student/home_pg.dart';
 import 'admin/admin_home_pg.dart';
 import 'waiting_approval_pg.dart'; // ✅ NEW import
+import '../services/fcm_service.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
   final User user;
@@ -83,6 +84,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         if (!mounted) return;
 
         if (role == 'admin') {
+          await FCMService.initializeFCM();
+
+          if (!mounted) return;
           // 🚀 Admin goes directly to admin home (no approval needed)
           Navigator.pushAndRemoveUntil(
             context,
@@ -99,6 +103,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   (r) => false,
             );
           } else if (approvalStatus == 'approved') {
+            await FCMService.initializeFCM();
+
+            if (!mounted) return;
             // Already approved (shouldn't happen for new registrations, but handle it)
             Navigator.pushAndRemoveUntil(
               context,

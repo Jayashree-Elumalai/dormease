@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'login_pg.dart';
 import 'student/register_pg.dart'; // 🆕 ADDED: Import register page
 import 'update_registration_pg.dart'; // 🆕 ADDED: Import update page
+import '../services/auth_service.dart';
 
 class WaitingApprovalScreen extends StatefulWidget {
   const WaitingApprovalScreen({super.key});
@@ -52,11 +53,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
           const SnackBar(content: Text('Your account has been approved!')),
         );
         // They can now login normally
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-              (route) => false,
-        );
+        await AuthService.logout(context);
       } else {
         // Still pending or rejected - just refresh the UI
         setState(() {});
@@ -71,15 +68,6 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (route) => false,
-    );
-  }
 
   // 🆕 ADDED: Delete account function
   Future<void> _confirmDeleteAccount() async {
@@ -351,7 +339,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: _logout,
+            onPressed: () => AuthService.logout(context),
             child: Text(
               'Logout',
               style: GoogleFonts.dangrek(
@@ -382,7 +370,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: _logout,
+                    onPressed: () => AuthService.logout(context),
                     child: Text('Back to Login',
                         style: GoogleFonts.dangrek(fontSize: 18)),
                   ),
@@ -707,7 +695,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
           ),
           const SizedBox(height: 40),
           ElevatedButton(
-            onPressed: _logout,
+            onPressed:() => AuthService.logout(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1800AD),
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
