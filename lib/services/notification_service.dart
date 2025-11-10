@@ -33,7 +33,8 @@ class NotificationService {
     // ✅ Create notification channel for SOS (high priority)
     if (Platform.isAndroid) {
       // ✅ FIXED: Create vibration pattern using Int64List
-      final Int64List vibrationPattern = Int64List.fromList([0, 1000, 500, 1000]);
+      // ✅ Continuous vibration pattern (repeats every 2 seconds)
+      final Int64List vibrationPattern = Int64List.fromList([0, 1000, 1000, 1000, 1000, 1000]);
 
       final AndroidNotificationChannel channel = AndroidNotificationChannel(
         'sos_alerts', // id
@@ -116,7 +117,6 @@ class NotificationService {
       autoCancel: false, // ✅ Don't auto-dismiss
       ongoing: true, // ✅ Can't be swiped away
       styleInformation: bigTextStyle, // ✅ ADDED: Prominent notification style
-      // sound: RawResourceAndroidNotificationSound('sos_alert'), // ✅ Uncomment when you add custom sound
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(

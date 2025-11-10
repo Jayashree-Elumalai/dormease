@@ -65,18 +65,16 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       _checking = true;
       _status = '';
     });
-
     try {
       await widget.user.reload();
       final fresh = FirebaseAuth.instance.currentUser;
-
       if (fresh != null && fresh.emailVerified) {
-        // ✅ Update Firestore flag
+        // Update Firestore flag
         final userDoc =
         FirebaseFirestore.instance.collection('users').doc(fresh.uid);
         await userDoc.update({'isProfileVerified': true});
 
-        // ✅ Fetch role and approval status
+        // Fetch role and approval status
         final snap = await userDoc.get();
         final role = snap['role'] ?? 'student';
         final approvalStatus = snap['approvalStatus'] ?? 'approved'; // ✅ NEW

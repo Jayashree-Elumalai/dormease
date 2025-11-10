@@ -280,7 +280,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
               children: [
                 // ✅ Status Card
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -293,7 +293,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                         size: 60,
                         color: _getStatusColor(status),
                       ),
-                      const SizedBox(height: 10),
+                      //const SizedBox(height: 10),
                       Text(
                         _getStatusText(status),
                         style: GoogleFonts.firaSans(
@@ -302,11 +302,11 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                           color: _getStatusColor(status),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      //const SizedBox(height: 6),
                       Text(
                         _getStatusDescription(status),
                         style: GoogleFonts.firaSans(
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey[700],
                         ),
@@ -338,7 +338,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                 _buildInfoCard(
                   icon: _getCategoryIcon(category),
                   label: 'Emergency Type',
-                  value: '${_getCategoryEmoji(category)} ${_formatCategory(category)}',
+                  value: '${_formatCategory(category)}',
                   color: _getCategoryColor(category),
                 ),
 
@@ -351,7 +351,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                     color: Colors.grey[700]!,
                   ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
 
                 // ✅ Timeline
                 Text(
@@ -362,7 +362,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                     color: const Color(0xFF1800AD),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 5),
 
                 if (createdAt != null)
                   _buildTimelineItem(
@@ -414,7 +414,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                     },
                   ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 // ✅ Admin Notes Section (only if acknowledged or resolved)
                 if (status == 'acknowledged' || status == 'resolved') ...[
@@ -426,7 +426,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                       color: const Color(0xFF1800AD),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 5),
 
                   if (status == 'resolved' && adminNotes != null)
                   // ✅ Show notes (read-only)
@@ -453,7 +453,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                       maxLines: 4,
                       maxLength: 300,
                       decoration: InputDecoration(
-                        hintText: 'Describe actions taken (min 10 characters)',
+                        hintText: 'Describe actions taken',
                         hintStyle: GoogleFonts.firaSans(
                           fontWeight: FontWeight.w600,
                           color: Colors.grey[600],
@@ -482,7 +482,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                       ),
                     ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),//space before mark as resolved
                 ],
 
                 // ✅ Action Buttons
@@ -490,7 +490,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                 // ✅ Acknowledge button (only if active)
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 60,
                     child: ElevatedButton.icon(
                       onPressed: _isAcknowledging ? null : _acknowledgeAlert,
                       style: ElevatedButton.styleFrom(
@@ -498,10 +498,10 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                       ),
                       icon: _isAcknowledging
                           ? const SizedBox(
-                        width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           color: Colors.white,
@@ -531,6 +531,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                       ),
                       icon: _isResolving
                           ? const SizedBox(
@@ -568,7 +569,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
@@ -577,8 +578,8 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(width: 12),
+          Icon(icon, color: color, size: 22),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,7 +592,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                     color: Colors.grey[600],
                   ),
                 ),
-                const SizedBox(height: 4),
+
                 Text(
                   value,
                   style: GoogleFonts.firaSans(
@@ -616,11 +617,11 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
     required Color color,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: color.withOpacity(0.2),
               shape: BoxShape.circle,
@@ -708,18 +709,6 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
     }
   }
 
-  String _getCategoryEmoji(String category) {
-    switch (category.toLowerCase()) {
-      case 'fire':
-        return '🔥';
-      case 'medical':
-        return '🏥';
-      case 'safety':
-        return '⚠️';
-      default:
-        return '❓';
-    }
-  }
 
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {

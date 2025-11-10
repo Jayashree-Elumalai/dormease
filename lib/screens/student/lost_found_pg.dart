@@ -34,6 +34,10 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // ✅ ADDED: Listen to tab changes to rebuild UI
+    _tabController.addListener(() {
+      setState(() {}); // Rebuild to show/hide search bar
+    });
   }
 
   @override
@@ -75,11 +79,9 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
     Query query = FirebaseFirestore.instance
         .collection('lostAndFound')
         .where('status', isEqualTo: 'unclaimed');
-
     if (_selectedCategory != 'all') {
       query = query.where('category', isEqualTo: _selectedCategory);
     }
-
     return query.orderBy('postedAt', descending: true).snapshots();
   }
 
@@ -153,6 +155,7 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
       ),
       body: Column(
         children: [
+          if (_tabController.index == 0)
           Container(
             padding: const EdgeInsets.all(12),
             color: Colors.grey[100],
@@ -601,11 +604,15 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
                       children: [
                         Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
                         const SizedBox(width: 4),
-                        Text(
+                        Expanded(
+                          child: Text(
                           _getDateLabel(status, postedAt, claimedAt, confirmedAt),
                           style: GoogleFonts.firaSans(
                             fontSize: 13,
                             color: Colors.grey[700],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -772,11 +779,11 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
           .get();
       final userName = userDoc.data()?['name'] ?? 'Unknown'; // ✅ ADDED
 
-      await FirebaseFirestore.instance.collection('lostAndFound').doc(itemId).update({ // ✅ CHANGED: delete → update
-        'status': 'waiting', // ✅ ADDED
-        'claimedBy': currentUser.uid, // ✅ ADDED
-        'claimedByName': userName, // ✅ ADDED
-        'claimedAt': FieldValue.serverTimestamp(), // ✅ ADDED
+      await FirebaseFirestore.instance.collection('lostAndFound').doc(itemId).update({
+        'status': 'waiting',
+        'claimedBy': currentUser.uid,
+        'claimedByName': userName,
+        'claimedAt': FieldValue.serverTimestamp(),
       });
 
       if (!mounted) return;

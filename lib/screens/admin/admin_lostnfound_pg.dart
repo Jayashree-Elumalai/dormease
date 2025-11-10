@@ -1349,7 +1349,6 @@ class _AdminItemDetailPageState extends State<AdminItemDetailPage> {
           // Ignore if image already deleted
         }
       }
-
       await FirebaseFirestore.instance.collection('lostAndFound').doc(widget.itemId).delete();
 
       if (!mounted) return;

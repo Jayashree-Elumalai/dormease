@@ -72,7 +72,7 @@ class _ConnectPageState extends State<ConnectPage> {
         final data = doc.data();
         final lastMessageBy = data['lastMessageBy'] as String?;
 
-        // ✅ NEW: Check if blocked
+        // Check if blocked
         final status = Map<String, dynamic>.from(data['status'] ?? {});
         final myStatus = status[currentUser.uid];
         if (myStatus == 'blocked') continue; // Skip blocked conversations
@@ -89,7 +89,7 @@ class _ConnectPageState extends State<ConnectPage> {
         for (var msgDoc in messagesSnapshot.docs) {
           final msgData = msgDoc.data();
 
-          // 🆕 ADDED: Skip system messages
+          // Skip system messages
           if (msgData['isSystemMessage'] == true) continue;
           final readBy = List<String>.from(msgData['readBy'] ?? []);
           if (!readBy.contains(currentUser.uid)) {
@@ -1122,7 +1122,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 🆕 ADDED: Accept chat request
+  // Accept chat request
   Future<void> _acceptChatRequest() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
@@ -1153,7 +1153,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 🆕 ADDED: Block user
+  // Block user
   Future<void> _blockUser(String otherUid) async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
@@ -1284,7 +1284,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 🆕 ADDED: Leave group function
+  // Leave group function
   Future<void> _leaveGroup() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
@@ -1384,7 +1384,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await convRef.update({
           'participants': FieldValue.arrayRemove([currentUser?.uid]),
           'participantDetails.${currentUser?.uid}': FieldValue.delete(),
-          'seenAddedBanner.${currentUser?.uid}': FieldValue.delete(), // 🆕 ADDED
+          'seenAddedBanner.${currentUser?.uid}': FieldValue.delete(),
         });
       }
 

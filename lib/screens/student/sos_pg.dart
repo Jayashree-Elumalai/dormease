@@ -26,6 +26,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
   bool _hasActiveAlert = false;
   String? _activeAlertId;
   late AnimationController _pulseController;
+  String _studentDefaultRoom = '';
 
   @override
   void initState() {
@@ -37,7 +38,8 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
-    )..repeat(reverse: true);
+    )
+      ..repeat(reverse: true);
   }
 
   @override
@@ -63,15 +65,18 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
         final userData = userDoc.data();
         final block = userData?['block'] ?? userData?['dormBlock'] ?? '';
         final room = userData?['room'] ?? userData?['dormRoom'] ?? '';
+        final defaultRoom = block.isNotEmpty && room.isNotEmpty
+            ? 'Block $block, Room $room'
+            : 'Dorm A, Room 302';
         setState(() {
-          _locationController.text = block.isNotEmpty && room.isNotEmpty
-              ? 'Block $block, Room $room'
-              : 'Dorm A, Room 302';
+          _studentDefaultRoom = defaultRoom; // ✅ CHANGED: Store separately
+          _locationController.text = defaultRoom;
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
+        _studentDefaultRoom = 'Dorm A, Room 302';
         _locationController.text = 'Dorm A, Room 302';
         _isLoading = false;
       });
@@ -131,23 +136,12 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  // Get count of active/acknowledged SOS alerts for badge
-  Stream<int> _getSosAlertCount() {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return Stream.value(0);
-
-    return FirebaseFirestore.instance
-        .collection('sosAlerts')
-        .where('studentUid', isEqualTo: currentUser.uid)
-        .where('status', whereIn: ['active', 'acknowledged'])
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-  }
-
   // Send SOS Alert
   Future<void> _sendSosAlert() async {
     // Validation
-    if (_locationController.text.trim().isEmpty) {
+    if (_locationController.text
+        .trim()
+        .isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -164,72 +158,80 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
     final confirm = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        titlePadding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 10),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        actionsPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-        title: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.warning_amber_rounded, size: 50, color: Colors.red),
+      builder: (context) =>
+          AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            titlePadding: const EdgeInsets.only(
+                top: 20, left: 20, right: 20, bottom: 10),
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20, vertical: 10),
+            actionsPadding: const EdgeInsets.only(
+                left: 12, right: 12, bottom: 12),
+            title: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                      Icons.warning_amber_rounded, size: 50, color: Colors.red),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Send SOS Alert?',
+                  style: GoogleFonts.firaSans(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Send SOS Alert?',
+            content: Text(
+              'This will immediately notify all admins of your emergency',
               style: GoogleFonts.firaSans(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1800AD),
               ),
               textAlign: TextAlign.center,
             ),
-          ],
-        ),
-        content: Text(
-          'This will immediately notify all admins of your emergency',
-          style: GoogleFonts.firaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1800AD),
-          ),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.firaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.firaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                  ),
+                ),
               ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text(
-              'Send Alert',
-              style: GoogleFonts.firaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text(
+                  'Send Alert',
+                  style: GoogleFonts.firaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -249,15 +251,15 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       final studentId = userData?['studentId'] ?? 'N/A';
 
       // Create SOS alert
-      final alertRef = await FirebaseFirestore.instance.collection('sosAlerts').add({
+      final alertRef = await FirebaseFirestore.instance
+          .collection('sosAlerts')
+          .add({
         'studentUid': currentUser.uid,
         'studentName': studentName,
         'studentId': studentId,
         'location': _locationController.text.trim(),
         'category': _selectedCategory,
-        'description': _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
+        'description': _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
         'status': 'active',
         'createdAt': FieldValue.serverTimestamp(),
         'acknowledgedAt': null,
@@ -280,7 +282,8 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e', style: GoogleFonts.firaSans(fontWeight: FontWeight.bold)),
+          content: Text('Error: $e',
+              style: GoogleFonts.firaSans(fontWeight: FontWeight.bold)),
           backgroundColor: Colors.red,
         ),
       );
@@ -311,10 +314,11 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          ),
+          onPressed: () =>
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+              ),
         ),
         title: Text(
           'SOS Emergency',
@@ -323,312 +327,333 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.red))
-          : Column( // ✅ CHANGED: SingleChildScrollView → Column (no scrolling)
-        children: [
-          // ✅ Header Section (Fixed height)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Column(
-              children: [
-                Text(
-                  'SOS EMERGENCY ALERT',
-                  style: GoogleFonts.firaSans(
-                    fontSize: 20, // ✅ REDUCED: 24→20
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                    letterSpacing: 1,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'ONLY USE IN REAL EMERGENCIES',
+          : SingleChildScrollView( // ✅ CHANGED: SingleChildScrollView → Column (no scrolling)
+        child: Column(
+          children: [
+            // Header Section
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Column(
+                children: [
+                  Text(
+                    'SOS EMERGENCY ALERT',
                     style: GoogleFonts.firaSans(
-                      fontSize: 11, // ✅ REDUCED: 12→11
+                      fontSize: 24,
                       fontWeight: FontWeight.w900,
-                      color: Colors.red,
-                      letterSpacing: 0.5,
+                      color: Colors.black,
+                      letterSpacing: 1,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 5),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'ONLY USE IN REAL EMERGENCIES',
+                      style: GoogleFonts.firaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.red,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-
-          // ✅ Emergency Type Buttons (Horizontal Row)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildCategoryButtonCompact(
-                  icon: '🔥',
-                  label: 'Fire',
-                  value: 'fire',
-                  color: Colors.red[600]!,
-                ),
-                _buildCategoryButtonCompact(
-                  icon: '🏥',
-                  label: 'Medical',
-                  value: 'medical',
-                  color: Colors.blue[600]!,
-                ),
-                _buildCategoryButtonCompact(
-                  icon: '⚠️',
-                  label: 'Safety',
-                  value: 'safety',
-                  color: Colors.orange[600]!,
-                ),
-                _buildCategoryButtonCompact(
-                  icon: '❓',
-                  label: 'Others',
-                  value: 'others',
-                  color: Colors.grey[600]!,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // ✅ Center SOS Button (Larger, no surrounding buttons)
-          GestureDetector(
-            onTap: _sendSosAlert,
-            child: AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return Container(
-                  width: 180, // ✅ INCREASED: 160→180
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.red,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withOpacity(0.5 * _pulseController.value),
-                        blurRadius: 30 * _pulseController.value,
-                        spreadRadius: 15 * _pulseController.value,
-                      ),
-                    ],
+            //const SizedBox(height: 5),
+            // ✅ Emergency Type Buttons (Horizontal Row)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildCategoryButtonCompact(
+                    icon: '🔥',
+                    label: 'Fire',
+                    value: 'fire',
+                    color: Colors.red[600]!,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.notifications_active, color: Colors.white, size: 56), // ✅ INCREASED: 50→56
-                      const SizedBox(height: 8),
-                      Text(
-                        'SOS',
-                        style: GoogleFonts.firaSans(
-                          fontSize: 36, // ✅ INCREASED: 30→36
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 3,
+                  _buildCategoryButtonCompact(
+                    icon: '🏥',
+                    label: 'Medical',
+                    value: 'medical',
+                    color: Colors.blue[600]!,
+                  ),
+                  _buildCategoryButtonCompact(
+                    icon: '⚠️',
+                    label: 'Safety',
+                    value: 'safety',
+                    color: Colors.orange[600]!,
+                  ),
+                  _buildCategoryButtonCompact(
+                    icon: '❓',
+                    label: 'Others',
+                    value: 'others',
+                    color: Colors.grey[600]!,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // ✅ Center SOS Button (Larger, no surrounding buttons)
+            GestureDetector(
+              onTap: _sendSosAlert,
+              child: AnimatedBuilder(
+                animation: _pulseController,
+                builder: (context, child) {
+                  return Container(
+                    width: 180,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.red,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(
+                              0.5 * _pulseController.value),
+                          blurRadius: 30 * _pulseController.value,
+                          spreadRadius: 15 * _pulseController.value,
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.notifications_active, color: Colors
+                            .white, size: 56), // ✅ INCREASED: 50→56
+                        const SizedBox(height: 8),
+                        Text(
+                          'SOS',
+                          style: GoogleFonts.firaSans(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
-          // ✅ Location Dropdown with Custom Input
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ✅ Dropdown for quick selection
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
+            // ✅ Location Dropdown with Custom Input
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ✅ Dropdown for quick selection
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: null,
+                        // Always null so it shows hint
+                        isExpanded: true,
+                        isDense: true,
+                        hint: Row(
+                          children: [
+                            const Icon(
+                                Icons.location_on, color: Color(0xFF1800AD),
+                                size: 20),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Quick select location',
+                              style: GoogleFonts.firaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                        icon: const Icon(Icons.arrow_drop_down, color: Color(
+                            0xFF1800AD)),
+                        items: [
+                          // ✅ FIXED: Always show student's actual room, not current selected location
+                          if (_studentDefaultRoom.isNotEmpty)
+                            DropdownMenuItem(
+                              value: _studentDefaultRoom,
+                              // ✅ CHANGED: Use stored default room
+                              child: Text(
+                                '🏠 My Room: $_studentDefaultRoom',
+                                // ✅ CHANGED: Always show actual room
+                                style: GoogleFonts.firaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1800AD),
+                                ),
+                              ),
+                            ),
+                          // ✅ Common locations
+                          DropdownMenuItem(
+                            value: 'Lobby',
+                            child: Text('🏢 Lobby',
+                                style: GoogleFonts.firaSans(fontSize: 14)),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Cafeteria',
+                            child: Text('🍽️ Cafeteria',
+                                style: GoogleFonts.firaSans(fontSize: 14)),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Study Room',
+                            child: Text('📚 Study Room',
+                                style: GoogleFonts.firaSans(fontSize: 14)),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Laundry Room',
+                            child: Text('🧺 Laundry Room',
+                                style: GoogleFonts.firaSans(fontSize: 14)),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Parking Lot',
+                            child: Text('🚗 Parking Lot',
+                                style: GoogleFonts.firaSans(fontSize: 14)),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Common Area',
+                            child: Text('👥 Common Area',
+                                style: GoogleFonts.firaSans(fontSize: 14)),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              _locationController.text =
+                                  value; // ✅ Update text field
+                            });
+                          }
+                        },
+                      ),
+                    ),
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: null, // Always null so it shows hint
-                      isExpanded: true,
-                      isDense: true,
-                      hint: Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Color(0xFF1800AD), size: 20),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Quick select location',
+
+                  const SizedBox(height: 8),
+
+                  // ✅ FIXED: Custom text input with proper padding
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    // ✅ CHANGED: 8→12 for more space
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row( // ✅ CHANGED: Wrap in Row to control icon positioning
+                      children: [
+                        const Icon(
+                            Icons.edit, color: Color(0xFF1800AD), size: 18),
+                        const SizedBox(width: 12),
+                        // ✅ ADDED: Space between icon and text
+                        Expanded( // ✅ ADDED: Constrain text field width
+                          child: TextField(
+                            controller: _locationController,
                             style: GoogleFonts.firaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
+                              color: Colors.black,
                             ),
-                          ),
-                        ],
-                      ),
-                      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1800AD)),
-                      items: [
-                        // ✅ Student's default location (from loaded data)
-                        if (_locationController.text.isNotEmpty)
-                          DropdownMenuItem(
-                            value: _locationController.text,
-                            child: Text(
-                              '🏠 My Room: ${_locationController.text}',
-                              style: GoogleFonts.firaSans(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1800AD),
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Or type custom location',
+                              hintStyle: GoogleFonts.firaSans(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                                fontSize: 13,
                               ),
+                              isDense: true,
+                              contentPadding: EdgeInsets.all(10),
                             ),
                           ),
-                        // ✅ Common locations
-                        DropdownMenuItem(
-                          value: 'Lobby',
-                          child: Text('🏢 Lobby', style: GoogleFonts.firaSans(fontSize: 14)),
-                        ),
-
-                        DropdownMenuItem(
-                          value: 'Cafeteria',
-                          child: Text('🍽️ Cafeteria', style: GoogleFonts.firaSans(fontSize: 14)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Study Room',
-                          child: Text('📚 Study Room', style: GoogleFonts.firaSans(fontSize: 14)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Gym',
-                          child: Text('🏋️ Gym', style: GoogleFonts.firaSans(fontSize: 14)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Laundry Room',
-                          child: Text('🧺 Laundry Room', style: GoogleFonts.firaSans(fontSize: 14)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Parking Lot',
-                          child: Text('🚗 Parking Lot', style: GoogleFonts.firaSans(fontSize: 14)),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Common Area',
-                          child: Text('👥 Common Area', style: GoogleFonts.firaSans(fontSize: 14)),
                         ),
                       ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _locationController.text = value; // ✅ Update text field
-                          });
-                        }
-                      },
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // ✅ Custom text input (can edit selected location)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: _locationController,
-                    style: GoogleFonts.firaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                    decoration: InputDecoration(
-                      icon: const Icon(Icons.edit, color: Color(0xFF1800AD), size: 18),
-                      border: InputBorder.none,
-                      hintText: 'Or type custom location',
-                      hintStyle: GoogleFonts.firaSans(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[600],
-                        fontSize: 13,
-                      ),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // ✅ Optional Description (Compact, Reduced height)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              padding: const EdgeInsets.all(12), // ✅ REDUCED: 14→12
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
+                ],
               ),
-              child: TextField(
-                controller: _descriptionController,
-                maxLines: 3, // ✅ REDUCED: 4→3
-                maxLength: 150, // ✅ REDUCED: 200→150
-                style: GoogleFonts.firaSans(
-                  fontSize: 13, // ✅ REDUCED: 14→13
-                  fontWeight: FontWeight.w600,
+            ),
+            const SizedBox(height: 8),
+
+            // ✅ Optional Description (Compact, Reduced height)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                padding: const EdgeInsets.all(12), // ✅ REDUCED: 14→12
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
                 ),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Additional details (optional)',
-                  hintStyle: GoogleFonts.firaSans(
+                child: TextField(
+                  controller: _descriptionController,
+                  maxLines: 3,
+                  // ✅ REDUCED: 4→3
+                  maxLength: 100,
+                  // ✅ REDUCED: 200→150
+                  style: GoogleFonts.firaSans(
+                    fontSize: 13, // ✅ REDUCED: 14→13
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                    fontSize: 12,
                   ),
-                  counterStyle: GoogleFonts.firaSans(fontSize: 10),
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Additional details (optional)',
+                    hintStyle: GoogleFonts.firaSans(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                    counterStyle: GoogleFonts.firaSans(fontSize: 10),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 15),
+                  ),
                 ),
               ),
             ),
-          ),
-
-          const Spacer(), // ✅ Push nav bar to bottom
-        ],
+          ],
+        ),
       ),
-      bottomNavigationBar: StreamBuilder<int>(
-        stream: _getSosAlertCount(),
-        builder: (context, snapshot) {
-          final alertCount = snapshot.data ?? 0;
-          return Container(
-            height: 60,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 6,
-                  offset: Offset(0, -2),
-                ),
-              ],
+
+      bottomNavigationBar: Container(
+        height: 60,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, -2),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.report, 'Report', 0),
-                _buildNavItem(Icons.inventory, 'Parcel', 1),
-                _buildNavItem(Icons.home, 'Home', 2),
-                _buildNavItem(Icons.chat, 'Connect', 3),
-                _buildNavItemWithBadge(Icons.warning, 'SOS', 4, alertCount),
-              ],
-            ),
-          );
-        },
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.report, 'Report', 0),
+            _buildNavItem(Icons.inventory, 'Parcel', 1),
+            _buildNavItem(Icons.home, 'Home', 2),
+            _buildNavItem(Icons.chat, 'Connect', 3),
+            _buildNavItem(Icons.warning, 'SOS', 4),
+          ],
+        ),
       ),
     );
   }
@@ -663,7 +688,8 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 24)), // ✅ REDUCED: 28→24
+            Text(icon, style: const TextStyle(fontSize: 24)),
+            // ✅ REDUCED: 28→24
             const SizedBox(height: 3),
             Text(
               label,
@@ -692,67 +718,6 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: color, size: 24),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.firaSans(
-                color: color,
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItemWithBadge(IconData icon, String label, int index, int badgeCount) {
-    bool isSelected = _selectedIndex == index;
-    Color color = isSelected ? const Color(0xFF1800AD) : Colors.grey;
-
-    return InkWell(
-      onTap: () => _onItemTapped(index),
-      child: SizedBox(
-        width: 70,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, color: color, size: 24),
-                if (badgeCount > 0)
-                  Positioned(
-                    right: -6,
-                    top: -4,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Text(
-                        badgeCount > 9 ? '9+' : badgeCount.toString(),
-                        style: GoogleFonts.firaSans(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
             const SizedBox(height: 2),
             Text(
               label,

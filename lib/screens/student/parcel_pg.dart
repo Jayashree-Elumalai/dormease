@@ -51,7 +51,7 @@ class _ParcelPageState extends State<ParcelPage> {
     );
   }
 
-  // 🆕 NEW: Student claims parcel
+  // Student claims parcel
   Future<void> _claimParcel(String parcelId) async {
     try {
       await FirebaseFirestore.instance.collection('parcels').doc(parcelId).update({

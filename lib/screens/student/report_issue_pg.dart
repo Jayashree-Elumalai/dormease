@@ -675,7 +675,6 @@ class _AddReportPageState extends State<AddReportPage> {
         );
         return;
       }
-
       // Compress if > 1MB
       if (fileSize > 1024 * 1024) {
         final dir = await getTemporaryDirectory();
@@ -686,7 +685,6 @@ class _AddReportPageState extends State<AddReportPage> {
           targetPath,
           quality: 70,
         );
-
         if (compressedFile != null) {
           setState(() {
             _imageFile = File(compressedFile.path);

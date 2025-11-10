@@ -76,17 +76,17 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     }
 
     try {
-      // 🔄 CHANGED: Added new fields for confirmation flow
+
       await FirebaseFirestore.instance.collection('parcels').add({
-        'studentUid': selectedStudentId,                    // 🆕 CHANGED: Firebase UID
-        'studentId': selectedStudentRegId,
+        'studentUid': selectedStudentId,   // Firebase UID
+        'studentId': selectedStudentRegId, //Student ID
         'studentName': selectedStudentName,
         'sentAt': FieldValue.serverTimestamp(),
         'claimed': false,
         'claimedAt': null,
-        'confirmed': false,        // 🆕 NEW
-        'confirmedAt': null,       // 🆕 NEW
-        'confirmedBy': null,       // 🆕 NEW (admin UID)
+        'confirmed': false,
+        'confirmedAt': null,
+        'confirmedBy': null,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,7 +114,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     }
   }
 
-  // 🔄 CHANGED: Now only admin confirms (student claims first)
+  // admin only confirms (student claims first)
   Future<void> _confirmParcel(String parcelId) async {
     try {
       final adminUid = FirebaseAuth.instance.currentUser?.uid;
@@ -122,7 +122,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
       await FirebaseFirestore.instance.collection('parcels').doc(parcelId).update({
         'confirmed': true,
         'confirmedAt': FieldValue.serverTimestamp(),
-        'confirmedBy': adminUid, // 🆕 NEW: Track which admin confirmed
+        'confirmedBy': adminUid, // Track which admin confirmed
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
