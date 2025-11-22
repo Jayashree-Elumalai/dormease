@@ -1,15 +1,15 @@
-import 'dart:async';
+import 'dart:async';//for timer
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'student/home_pg.dart';
 import 'admin/admin_home_pg.dart';
-import 'waiting_approval_pg.dart'; // ✅ NEW import
+import 'waiting_approval_pg.dart'; //
 import '../services/fcm_service.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
-  final User user;
+  final User user; // firebase user obj from register/login
   const VerifyEmailScreen({super.key, required this.user});
 
   @override
@@ -17,38 +17,42 @@ class VerifyEmailScreen extends StatefulWidget {
 }
 
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
-  bool _sending = false;
-  bool _checking = false;
-  String _status = '';
-  Timer? _resendCooldownTimer;
-  int _resendCooldown = 0;
+  bool _sending = false; //checking if resending email
+  bool _checking = false;//checking if verifying email status in progress
+  String _status = '';//display status message
+  Timer? _resendCooldownTimer;// timer of 60 secs
+  int _resendCooldown = 0;// can resend if only 0
 
   @override
   void dispose() {
-    _resendCooldownTimer?.cancel();
+    _resendCooldownTimer?.cancel(); //cancel cooldown timer
     super.dispose();
   }
 
+  //resend verification email
   Future<void> _resend() async {
-    if (_resendCooldown > 0) return;
+    if (_resendCooldown > 0) return;//cant resend if countdown active
     try {
-      setState(() {
+      setState(() { //update ui, clear previous status
         _sending = true;
         _status = '';
       });
+      //firebase send verification email to user
       await widget.user.sendEmailVerification();
-      setState(() {
+      setState(() {//update ui-show success message
         _status = 'Verification email resent. Please check your inbox';
-        _resendCooldown = 60;
+        _resendCooldown = 60; //start at 60 secs
       });
+      //timer countdown
       _resendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_resendCooldown <= 0) {
-          timer.cancel();
+          timer.cancel();//countdown stop when reach 0
         } else {
-          setState(() => _resendCooldown--);
+          setState(() => _resendCooldown--);//decrease by 1 sec
         }
       });
     } on FirebaseAuthException catch (e) {
+      //handling firebase errors
       if (e.code == 'too-many-requests') {
         setState(() => _status =
         'Too many requests. Please wait a while before trying again');
@@ -56,43 +60,49 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         setState(() => _status = 'Failed to resend: ${e.message}');
       }
     } finally {
+      //Hide loading if cooldown 0
       if (mounted && _resendCooldown == 0) setState(() => _sending = false);
     }
   }
 
+  //check email verification
   Future<void> _check() async {
-    setState(() {
+    setState(() {//update ui
       _checking = true;
       _status = '';
     });
     try {
+      // Firebase: Reload user to get latest verification status
       await widget.user.reload();
-      final fresh = FirebaseAuth.instance.currentUser;
+      final fresh = FirebaseAuth.instance.currentUser; // Get updated user
+      //Check if email is now verified
       if (fresh != null && fresh.emailVerified) {
-        // Update Firestore flag
-        final userDoc =
-        FirebaseFirestore.instance.collection('users').doc(fresh.uid);
+        // Update isProfileVerified to true
+        final userDoc = FirebaseFirestore.instance.collection('users').doc(fresh.uid);
         await userDoc.update({'isProfileVerified': true});
 
         // Fetch role and approval status
         final snap = await userDoc.get();
-        final role = snap['role'] ?? 'student';
-        final approvalStatus = snap['approvalStatus'] ?? 'approved'; // ✅ NEW
+        final role = snap['role'] ?? 'student'; //approval status only for students
 
         if (!mounted) return;
 
+        //ADMIN FLOW
         if (role == 'admin') {
+          // Initialize FCM for push notifications
           await FCMService.initializeFCM();
 
           if (!mounted) return;
-          // 🚀 Admin goes directly to admin home (no approval needed)
+          // Admin goes directly to admin home (no approval needed)
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const AdminHomeScreen()),
-                (r) => false,
+                (r) => false, //remove all previous routes
           );
         } else {
-          // 🚀 Student - check approval status
+          //STUDENT FLOW- check approval status
+          final approvalStatus = snap['approvalStatus'] ?? 'approved';
+          // Student - check approval status
           if (approvalStatus == 'pending' || approvalStatus == 'rejected') {
             // Send to waiting screen
             Navigator.pushAndRemoveUntil(
@@ -100,11 +110,11 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               MaterialPageRoute(builder: (_) => const WaitingApprovalScreen()),
                   (r) => false,
             );
+            //student approved
           } else if (approvalStatus == 'approved') {
-            await FCMService.initializeFCM();
+            await FCMService.initializeFCM();//initialize FCM
 
             if (!mounted) return;
-            // Already approved (shouldn't happen for new registrations, but handle it)
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -118,14 +128,15 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         setState(() =>
         _status = 'Email not verified yet. Please check your inbox.');
       }
-    } catch (e) {
+    } catch (e) {//handle errors
       setState(() => _status = 'Error checking verification: ${e.toString()}');
     } finally {
-      if (mounted) setState(() => _checking = false);
+      if (mounted) setState(() => _checking = false);//hide loading
     }
   }
 
   @override
+  //VERIFY PG UI
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Verify Email')),
@@ -137,7 +148,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
             const SizedBox(height: 8),
             Text("A verification email was sent to:",
                 style: GoogleFonts.dangrek(fontSize: 20)),
-            Text(widget.user.email ?? '',
+            Text(widget.user.email ?? '',//shows users email
                 style:
                 GoogleFonts.dangrek(fontSize: 20, color: Colors.blue)),
             const SizedBox(height: 20),
@@ -147,11 +158,13 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
+            //resend button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(44),
                 padding: const EdgeInsets.symmetric(horizontal: 22),
               ),
+              //disable resend button if sending/cooldown active . prevent spamming
               onPressed: (_sending || _resendCooldown > 0) ? null : _resend,
               child: _sending
                   ? const SizedBox(
@@ -168,12 +181,13 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            //verify email button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(44),
                 padding: const EdgeInsets.symmetric(horizontal: 22),
               ),
-              onPressed: _checking ? null : _check,
+              onPressed: _checking ? null : _check,//disable while checking
               child: _checking
                   ? const SizedBox(
                 height: 20,
@@ -192,6 +206,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 18),
+            //show status message- success/error
             if (_status.isNotEmpty)
               Text(
                 _status,

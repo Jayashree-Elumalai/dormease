@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../login_pg.dart';
 import 'home_pg.dart';
 import 'connect_pg.dart';
 import 'report_issue_pg.dart';
@@ -22,6 +21,7 @@ class _ParcelPageState extends State<ParcelPage> {
   int _selectedIndex = 1;
   String parcelFilter = 'unclaimed'; // 'unclaimed', 'waiting', 'confirmed'
 
+  //Navigate between student pages
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
 
@@ -54,6 +54,7 @@ class _ParcelPageState extends State<ParcelPage> {
   // Student claims parcel
   Future<void> _claimParcel(String parcelId) async {
     try {
+      // Update parcel status to claimed
       await FirebaseFirestore.instance.collection('parcels').doc(parcelId).update({
         'claimed': true,
         'claimedAt': FieldValue.serverTimestamp(),
@@ -75,33 +76,35 @@ class _ParcelPageState extends State<ParcelPage> {
     }
   }
 
+  //Format timestamp to readable string
   String _formatTime(Timestamp? ts) {
     if (ts == null) return "N/A";
     return DateFormat('dd MMM, h:mm a').format(ts.toDate());
   }
 
-  // 🆕 NEW: Get stream based on filter and current student
+  // Get stream based on filter and current student
   Stream<QuerySnapshot> _getParcelStream() {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       return const Stream.empty();
     }
-
+    // Base query: only parcels for current student
     Query query = FirebaseFirestore.instance
         .collection('parcels')
         .where('studentUid', isEqualTo: currentUser.uid);
 
     switch (parcelFilter) {
+      // Show parcels student hasn't claimed yet
       case 'unclaimed':
       // Show parcels student hasn't claimed yet
-        query = query
+        query = query //index
             .where('claimed', isEqualTo: false)
             .orderBy('sentAt', descending: true);
         break;
 
       case 'waiting':
       // Show parcels student claimed but admin hasn't confirmed
-        query = query
+        query = query //index
             .where('claimed', isEqualTo: true)
             .where('confirmed', isEqualTo: false)
             .orderBy('claimedAt', descending: true);
@@ -109,7 +112,7 @@ class _ParcelPageState extends State<ParcelPage> {
 
       case 'confirmed':
       // Show parcels admin confirmed
-        query = query
+        query = query//index
             .where('confirmed', isEqualTo: true)
             .orderBy('confirmedAt', descending: true);
         break;
@@ -119,6 +122,7 @@ class _ParcelPageState extends State<ParcelPage> {
   }
 
   @override
+  //PARCEL PG UI
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -154,7 +158,7 @@ class _ParcelPageState extends State<ParcelPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // 🆕 NEW: 3 toggle buttons
+            // 3 filter/toggle buttons (Filter parcels by status)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -232,10 +236,10 @@ class _ParcelPageState extends State<ParcelPage> {
             ),
             const SizedBox(height: 16),
 
-            // 🆕 NEW: Parcel list
+            // Parcel list
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                key: ValueKey(parcelFilter),
+                key: ValueKey(parcelFilter), // Rebuild when filter changes
                 stream: _getParcelStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -251,6 +255,7 @@ class _ParcelPageState extends State<ParcelPage> {
                     );
                   }
 
+                  // Empty state
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     String emptyMessage;
                     switch (parcelFilter) {
@@ -287,6 +292,7 @@ class _ParcelPageState extends State<ParcelPage> {
 
                   final parcels = snapshot.data!.docs;
 
+                  // Build list of parcel cards
                   return ListView.builder(
                     itemCount: parcels.length,
                     itemBuilder: (context, index) {
@@ -302,6 +308,7 @@ class _ParcelPageState extends State<ParcelPage> {
         ),
       ),
 
+      // student bottom navbar
       bottomNavigationBar: Container(
         height: 60,
         decoration: const BoxDecoration(
@@ -328,6 +335,7 @@ class _ParcelPageState extends State<ParcelPage> {
     );
   }
 
+  // HELPER: Build custom nav item
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     Color color = isSelected ? const Color(0xFF1800AD) : Colors.grey;
@@ -351,13 +359,13 @@ class _ParcelPageState extends State<ParcelPage> {
     );
   }
 
-  // 🆕 NEW: Build parcel card based on filter
+  // Build parcel card based on filter
   Widget _buildParcelCard(String parcelId, Map<String, dynamic> data) {
     final sentAt = data['sentAt'] as Timestamp?;
     final claimedAt = data['claimedAt'] as Timestamp?;
     final confirmedAt = data['confirmedAt'] as Timestamp?;
 
-    // Status badge color
+    // Status badge color(badge appearance based on current filter)
     Color statusColor;
     String statusText;
     IconData statusIcon;
@@ -405,6 +413,7 @@ class _ParcelPageState extends State<ParcelPage> {
                     color: const Color(0xFF1800AD),
                   ),
                 ),
+                // status badge (with border and icon)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
@@ -434,8 +443,10 @@ class _ParcelPageState extends State<ParcelPage> {
 
             // Show different info based on filter
             if (parcelFilter == 'unclaimed') ...[
+              //unclaimed - sent time + claim button
               _buildInfoRow(Icons.access_time, 'Sent', _formatTime(sentAt)),
               const SizedBox(height: 12),
+              //claim button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -459,9 +470,11 @@ class _ParcelPageState extends State<ParcelPage> {
                 ),
               ),
             ] else if (parcelFilter == 'waiting') ...[
+              // waiting: sent + claimed times + info message
               _buildInfoRow(Icons.send, 'Sent', _formatTime(sentAt)),
               _buildInfoRow(Icons.check, 'Claimed', _formatTime(claimedAt)),
               const SizedBox(height: 12),
+              //info message
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -487,10 +500,12 @@ class _ParcelPageState extends State<ParcelPage> {
                 ),
               ),
             ] else if (parcelFilter == 'confirmed') ...[
+              // confirmed: Show all timestamps + success message
               _buildInfoRow(Icons.send, 'Sent', _formatTime(sentAt)),
               _buildInfoRow(Icons.check, 'Claimed', _formatTime(claimedAt)),
               _buildInfoRow(Icons.check_circle, 'Confirmed', _formatTime(confirmedAt)),
               const SizedBox(height: 12),
+              // success message
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(

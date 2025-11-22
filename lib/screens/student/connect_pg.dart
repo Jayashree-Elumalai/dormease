@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-import '../login_pg.dart';
 import 'home_pg.dart';
 import 'parcel_pg.dart';
 import 'report_issue_pg.dart';
@@ -407,20 +406,20 @@ class _ConnectPageState extends State<ConnectPage> {
                 ),
             ],
           ),
-          subtitle: Builder( // 🆕 WRAPPED: Use Builder to handle null safety
+          subtitle: Builder( // WRAPPED: Builder to handle null safety
             builder: (context) {
-              // 🆕 ADDED: Get lastMessageType from data, default to 'text' if not set
+              // Get lastMessageType from data, default to 'text' if not set
               final messageType = data['lastMessageType'] as String?;
-              final isDeleted = messageType == 'deleted'; // 🆕 ADDED: Check if deleted
+              final isDeleted = messageType == 'deleted'; // Check if deleted
 
               return Row(
                 children: [
-                  // 🆕 ADDED: Show block icon ONLY if lastMessageType is 'deleted'
+                  // Show block icon ONLY if lastMessageType is 'deleted'
                   if (isDeleted)
                     Padding(
                       padding: const EdgeInsets.only(right: 4),
                       child: Icon(
-                        Icons.block, // 🎯 Same icon as in chat bubbles
+                        Icons.block,
                         size: 14,
                         color: Colors.grey[600],
                       ),
@@ -431,7 +430,7 @@ class _ConnectPageState extends State<ConnectPage> {
                       style: GoogleFonts.firaSans(
                         color: Colors.grey[600],
                         fontSize: 14,
-                        fontStyle: isDeleted // 🆕 ADDED: Italic ONLY if deleted
+                        fontStyle: isDeleted //  Italic ONLY if deleted
                             ? FontStyle.italic
                             : FontStyle.normal,
                       ),
@@ -443,8 +442,8 @@ class _ConnectPageState extends State<ConnectPage> {
               );
             },
           ),
-          onTap: () async { // ✅ CHANGED: Made async
-            await Navigator.push( // ✅ CHANGED: Added await
+          onTap: () async { //  Made async
+            await Navigator.push( // Added await
               context,
               MaterialPageRoute(
                 builder: (_) => ChatScreen(
@@ -454,7 +453,7 @@ class _ConnectPageState extends State<ConnectPage> {
                 ),
               ),
             );
-            // 🆕 ADDED: Force rebuild to update timestamps
+            // Force rebuild to update timestamps
             if (mounted) {
               setState(() {}); // This triggers rebuild and fetches fresh data
             }
@@ -476,7 +475,7 @@ class _ConnectPageState extends State<ConnectPage> {
     for (var doc in messagesSnapshot.docs) {
       final data = doc.data();
 
-      // 🆕 ADDED: Skip system messages
+      // Skip system messages
       if (data['isSystemMessage'] == true) continue;
       final readBy = List<String>.from(data['readBy'] ?? []);
       if (!readBy.contains(currentUid)) unread++;
@@ -678,7 +677,7 @@ class _NewChatPageState extends State<NewChatPage> {
                     borderRadius: BorderRadius.circular(25),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16), // ✅ CHANGED: 12→8
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   isDense: true,
                 ),
               ),
@@ -831,7 +830,7 @@ class _NewChatPageState extends State<NewChatPage> {
           ),
         ],
       ),
-      // 🆕 ADDED: FAB (Floating Action Button) for creating group
+      // FAB (Floating Action Button) for creating group
       floatingActionButton: _isCreatingGroup && _selectedUsers.length >= 2
           ? FloatingActionButton.extended(
         onPressed: _createGroupChat,
@@ -895,7 +894,7 @@ class _NewChatPageState extends State<NewChatPage> {
               'nameLower': otherNameLower,
             },
           },
-          // 🆕 ADDED: Blocking system fields
+          //Blocking system fields
           'status': {
             currentUser.uid: 'accepted',
             otherUid: 'pending',
@@ -916,7 +915,7 @@ class _NewChatPageState extends State<NewChatPage> {
       if (!mounted) return;
 
       // Navigate to chat screen
-      Navigator.push( // ✅ CHANGED: pushReplacement → push
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ChatScreen(
@@ -926,7 +925,7 @@ class _NewChatPageState extends State<NewChatPage> {
           ),
         ),
       ).then((_) {
-        // 🆕 ADDED: After chat closes, go back to Connect page
+        //  After chat closes, go back to Connect page
         if (mounted) {
           Navigator.pop(context); // Go back to Connect page
         }
@@ -977,7 +976,7 @@ class _NewChatPageState extends State<NewChatPage> {
         ..._selectedUsers,
       };
 
-      // 🆕 ADDED: Track who has seen the "added to group" banner
+      //  Track who has seen the "added to group" banner
       final seenAddedBanner = <String, bool>{};
       for (var uid in participants) {
         if (uid == currentUser.uid) {
@@ -1002,7 +1001,7 @@ class _NewChatPageState extends State<NewChatPage> {
 
       if (!mounted) return;
 
-      Navigator.push( // ✅ CHANGED: pushReplacement → push
+      Navigator.push( //
         context,
         MaterialPageRoute(
           builder: (_) => ChatScreen(
@@ -1012,7 +1011,7 @@ class _NewChatPageState extends State<NewChatPage> {
           ),
         ),
       ).then((_) {
-        // 🆕 ADDED: After chat closes, go back to Connect page
+        // After chat closes, go back to Connect page
         if (mounted) {
           Navigator.pop(context); // Go back to Connect page
         }
@@ -1084,7 +1083,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
 
-  // 🆕 ADDED: Mark "added to group" banner as seen
+  // Mark "added to group" banner as seen
   Future<void> _markAddedBannerAsSeen() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
@@ -1161,23 +1160,23 @@ class _ChatScreenState extends State<ChatScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        // 🆕 ADDED: Better padding
+        // Better padding
         titlePadding: const EdgeInsets.only(top: 12, left: 16, right: 16, bottom: 0),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 12),
 
-        // 🔄 CHANGED: Better styled title with icon
+        //  Better styled title with icon
         title: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.block, size: 50, color: Colors.red), // 🆕 ADDED: Block icon
+            const Icon(Icons.block, size: 50, color: Colors.red), //  Block icon
             const SizedBox(height: 8),
             Center(
               child: Text(
                 'Block ${widget.chatName}?',
                 style: GoogleFonts.firaSans(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold, // 🆕 ADDED: Bold
+                  fontWeight: FontWeight.bold,
                   color: Colors.red,
                 ),
                 textAlign: TextAlign.center,
@@ -1190,7 +1189,7 @@ class _ChatScreenState extends State<ChatScreen> {
           "You won't see their messages and they can't send you new messages",
           style: GoogleFonts.firaSans(
             fontSize: 14,
-            fontWeight: FontWeight.w600, // 🆕 ADDED: Semi-bold
+            fontWeight: FontWeight.w600,
             color: const Color(0xFF1800AD),
           ),
           textAlign: TextAlign.center,
@@ -1202,7 +1201,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 'Cancel',
                 style: GoogleFonts.firaSans(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold, // 🆕 ADDED: Bold
+                  fontWeight: FontWeight.bold,
                   color: Colors.grey[700],
                 )
             ),
@@ -1252,7 +1251,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // 🆕 ADDED: Unblock user
+  //  Unblock user
   Future<void> _unblockUser() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
@@ -1369,14 +1368,14 @@ class _ChatScreenState extends State<ChatScreen> {
               .get();
           final userName = userDoc.data()?['name'] ?? 'Someone';
 
-          // 🆕 Post "{name} left" system message BEFORE removing from group
+          // Post {name} left system message BEFORE removing from group
           await convRef.collection('messages').add({
             'text': '$userName left',
             'sentBy': 'system',
             'sentByName': 'System',
             'sentAt': FieldValue.serverTimestamp(),
             'readBy': [],
-            'isSystemMessage': true, // 🆕 Mark as system message
+            'isSystemMessage': true, // Mark as system message
           });
         }
 
@@ -1430,7 +1429,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final messageText = _messageController.text.trim();
       _messageController.clear();
 
-      // 🆕 ADDED: Mark banner as seen when sending first message
+      // Mark banner as seen when sending first message
       if (widget.isGroup) {
         _markAddedBannerAsSeen();
       }
@@ -1505,7 +1504,7 @@ class _ChatScreenState extends State<ChatScreen> {
         'deletedBy': FirebaseAuth.instance.currentUser?.uid,
       });
 
-      // ✅ NEW: Update conversation's lastMessage if this was the last message
+      // Update conversation's lastMessage if this was the last message
       if (isLastMessage) {
         // Check if this is actually the most recent message
         final conversationDoc = await FirebaseFirestore.instance
@@ -1522,8 +1521,8 @@ class _ChatScreenState extends State<ChatScreen> {
               .collection('conversations')
               .doc(widget.conversationId)
               .update({
-            'lastMessage': 'Message deleted', // ✅ CHANGED: Show deletion indicator
-            'lastMessageType': 'deleted', // 🆕 ADDED: Track message type
+            'lastMessage': 'Message deleted', // how deletion indicator
+            'lastMessageType': 'deleted', //  Track message type
           });
         }
       }
@@ -1541,85 +1540,85 @@ class _ChatScreenState extends State<ChatScreen> {
     final newText = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        // 🆕 ADDED: Better padding
+
         titlePadding: const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 10),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
 
-        // ✅ IMPROVED: Styled title
+        // Styled title
         title: Text(
           'Edit Message',
           style: GoogleFonts.firaSans(
-            fontSize: 20, // 🆕 ADDED
-            fontWeight: FontWeight.bold, // 🆕 ADDED
-            color: const Color(0xFF1800AD), // 🆕 ADDED
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1800AD),
           ),
-          textAlign: TextAlign.center, // 🆕 ADDED
+          textAlign: TextAlign.center,
         ),
 
-        // ✅ IMPROVED: Styled text field
+        // Styled text field
         content: TextField(
           controller: controller,
           maxLines: 3,
-          autofocus: true, // 🆕 ADDED: Auto-focus for convenience
-          style: GoogleFonts.firaSans( // 🆕 ADDED: Match chat style
+          autofocus: true, //  Auto-focus for convenience
+          style: GoogleFonts.firaSans( // Match chat style
             fontSize: 15,
             color: Colors.black87,
           ),
           decoration: InputDecoration(
             hintText: 'Edit your message...',
-            hintStyle: GoogleFonts.firaSans( // ✅ CHANGED: Now using firaSans
+            hintStyle: GoogleFonts.firaSans( // Now using firaSans
               color: Colors.grey,
               fontSize: 15,
             ),
-            filled: true, // 🆕 ADDED
-            fillColor: Colors.grey[100], // 🆕 ADDED
+            filled: true,
+            fillColor: Colors.grey[100],
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12), // ✅ CHANGED: 8→12
-              borderSide: const BorderSide(color: Color(0xFF1800AD), width: 2), // 🆕 ADDED
-            ),
-            enabledBorder: OutlineInputBorder( // 🆕 ADDED
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF1800AD), width: 2),
             ),
-            focusedBorder: OutlineInputBorder( // 🆕 ADDED
+            enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF1800AD), width: 2),
             ),
-            contentPadding: const EdgeInsets.all(12), // 🆕 ADDED
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF1800AD), width: 2),
+            ),
+            contentPadding: const EdgeInsets.all(12),
           ),
         ),
 
-        // ✅ IMPROVED: Styled buttons
+        // Styled buttons
         actions: [
           // Cancel button
           TextButton(
             onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom( // 🆕 ADDED: Button styling
+            style: TextButton.styleFrom( // Button styling
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
             child: Text(
               'Cancel',
               style: GoogleFonts.firaSans(
-                fontSize: 15, // 🆕 ADDED
-                fontWeight: FontWeight.bold, // ✅ CHANGED: Made bold
-                color: Colors.grey[700], // ✅ CHANGED: Grey color
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
               ),
             ),
           ),
 
           // Save button
-          TextButton( // ✅ CHANGED: TextButton → ElevatedButton
+          TextButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            style: TextButton.styleFrom( // 🆕 ADDED: Green button
+            style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
             child: Text(
               'Save',
               style: GoogleFonts.firaSans(
-                fontSize: 15, // 🆕 ADDED
-                fontWeight: FontWeight.bold, // ✅ CHANGED: Made bold
-                color: Colors.green, // 🆕 ADDED
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
               ),
             ),
           ),
@@ -1643,7 +1642,7 @@ class _ChatScreenState extends State<ChatScreen> {
           'editedAt': FieldValue.serverTimestamp(),
         });
 
-        // ✅ NEW: Update conversation's lastMessage if this was the last message
+        // Update conversation's lastMessage if this was the last message
         final conversationDoc = await FirebaseFirestore.instance
             .collection('conversations')
             .doc(widget.conversationId)
@@ -1658,8 +1657,8 @@ class _ChatScreenState extends State<ChatScreen> {
               .collection('conversations')
               .doc(widget.conversationId)
               .update({
-            'lastMessage': newText, // ✅ CHANGED: Update with edited text
-            'lastMessageType': 'text', // 🆕 ADDED: Track message type
+            'lastMessage': newText, //  Update with edited text
+            'lastMessageType': 'text', //  Track message type
           });
         }
       } catch (e) {
@@ -1753,7 +1752,7 @@ class _ChatScreenState extends State<ChatScreen> {
               icon: const Icon(Icons.info_outline),
               onPressed: _showGroupInfo,
             )
-          // 🆕 ADDED: Block/Unblock menu for direct chats only
+          //  Block/Unblock menu for direct chats only
           else
             StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
@@ -1765,7 +1764,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 final data = snapshot.data?.data() as Map<String, dynamic>?;
 
-                // 🆕 ADDED: Check if status and participants exist
+                //Check if status and participants exist
                 if (data == null) return const SizedBox.shrink();
 
                 final status = Map<String, dynamic>.from(data['status'] ?? {});
@@ -1827,7 +1826,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final convData = convSnapshot.data?.data() as Map<String, dynamic>?;
 
-    // 🆕 ADDED: Safe null handling
+    //  Safe null handling
     final status = convData != null
     ? Map<String, dynamic>.from(convData['status'] ?? {})
         : <String, dynamic>{};
@@ -1842,11 +1841,11 @@ class _ChatScreenState extends State<ChatScreen> {
     );
     final otherStatus = status[otherUid];
 
-    // 🆕 ADDED: Check blocking status
+    //  Check blocking status
     final iBlockedThem = myStatus == 'blocked';
     final theyBlockedMe = otherStatus == 'blocked';
     final isPending = myStatus == 'pending' && !widget.isGroup;
-    // 🆕 ADDED: Check if user has seen "added to group" banner
+    // Check if user has seen "added to group" banner
     final seenAddedBanner = convData != null
     ? Map<String, dynamic>.from(convData['seenAddedBanner'] ?? {})
         : <String, dynamic>{};
@@ -1856,7 +1855,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Column(
       children: [
-        // 🆕 ADDED: "Added to group" banner
+        // "Added to group" banner
         if (showAddedBanner)
           Container(
             padding: const EdgeInsets.all(12),
@@ -1878,7 +1877,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
           ),
-        // 🆕 ADDED: Accept/Block banner for pending requests
+        // Accept/Block banner for pending requests
         if (isPending && !widget.isGroup)
           Container(
             padding: const EdgeInsets.all(12),
@@ -1896,7 +1895,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 Row(
                   children: [
-                    // 🔄 CHANGED: TextButton → Outlined button for better visibility
+                    // TextButton → Outlined button for better visibility
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () => _blockUser(otherUid),
@@ -1917,7 +1916,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12), // 🆕 ADDED: Space between buttons
+                    const SizedBox(width: 12), //  Space between buttons
                     Expanded(
                       child: ElevatedButton(
                         onPressed: _acceptChatRequest,
@@ -1943,7 +1942,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
           ),
-        // 🆕 ADDED: Blocker banner
+        // Blocker banner
         if (iBlockedThem && !widget.isGroup)
           Container(
             padding: const EdgeInsets.all(12),
@@ -1965,7 +1964,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
           ),
-        // 🆕 ADDED: Blocked banner
+        // Blocked banner
         if (theyBlockedMe && !widget.isGroup)
           Container(
             padding: const EdgeInsets.all(12),
@@ -2044,7 +2043,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       currentMessageTime, previousMessageTime);
                   return Column(
                     children: [
-                      // 🆕 ADDED: Date header
+                      //  Date header
                       if (showDateHeader && currentMessageTime != null)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -2071,7 +2070,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         _buildDeletedMessage(data['sentBy'] == currentUser?.uid)
                       else
                         if (data['isSystemMessage'] ==
-                            true) // 🆕 ADDED: System messages
+                            true)
                           _buildSystemMessage(data['text'] ?? '')
                         else
                           _buildMessageBubble(
@@ -2107,7 +2106,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   controller: _messageController,
                   maxLines: null,
                   textCapitalization: TextCapitalization.sentences,
-                  // 🆕 ADDED: Disable if blocked
+                  //  Disable if blocked
                   enabled: !iBlockedThem && !theyBlockedMe && (myStatus == 'accepted' || widget.isGroup),
                   decoration: InputDecoration(
                     hintText: iBlockedThem || theyBlockedMe
@@ -2291,7 +2290,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // 🆕 System message bubble
+  // System message bubble
   Widget _buildSystemMessage(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -2362,7 +2361,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 }),
                 const Divider(height: 1),
 
-                // 🆕 ADDED: Add Members button
+                // Add Members button
                 ListTile(
                   leading: const Icon(Icons.person_add, color: Color(0xFF1800AD)),
                   title: Text(
@@ -2374,13 +2373,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context); // Close modal
-                    _showAddMembersPage(); // 🆕 Open add members page
+                    _showAddMembersPage(); //  Open add members page
                   },
                 ),
 
                 const Divider(height: 1),
 
-                // 🆕 ADDED: Leave Group button
+                //  Leave Group button
                 ListTile(
                   leading: const Icon(Icons.exit_to_app, color: Colors.orange),
                   title: Text(
@@ -2404,7 +2403,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // 🆕 ADD THIS ENTIRE FUNCTION AFTER _showGroupInfo():
+
   void _showAddMembersPage() {
     showModalBottomSheet(
       context: context,
@@ -2432,7 +2431,7 @@ class _ChatScreenState extends State<ChatScreen> {
         current.day != previous.day;
   }
 
-  // 🆕 Format date header
+  // Format date header
   String _formatDateHeader(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -2713,7 +2712,7 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
         final currentDetails = Map<String, dynamic>.from(convData['participantDetails'] ?? {});
         final newDetails = {...currentDetails, ..._selectedUsers};
 
-        // 🆕 Update seenAddedBanner for new members
+        // Update seenAddedBanner for new members
         final seenAddedBanner = Map<String, dynamic>.from(convData['seenAddedBanner'] ?? {});
         for (var uid in _selectedUsers.keys) {
           seenAddedBanner[uid] = false; // New members need to see banner
@@ -2726,7 +2725,7 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
           'seenAddedBanner': seenAddedBanner,
         });
 
-        // 🆕 Post system message
+        // Post system message
         final addedBy = FirebaseAuth.instance.currentUser;
         if (addedBy != null) {
           final adderDoc = await FirebaseFirestore.instance
@@ -2743,7 +2742,7 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
             'sentByName': 'System',
             'sentAt': FieldValue.serverTimestamp(),
             'readBy': [],
-            'isSystemMessage': true, // 🆕 Mark as system message
+            'isSystemMessage': true, // Mark as system message
           });
         }
       }

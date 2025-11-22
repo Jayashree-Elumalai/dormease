@@ -5,8 +5,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../login_pg.dart';
-import 'admin_home_pg.dart';
 import 'admin_annnouncements_pg.dart';
 import 'admin_report_pg.dart';
 import 'admin_parcel_pg.dart';
@@ -20,24 +18,32 @@ class AdminLostnfoundPg extends StatefulWidget {
   State<AdminLostnfoundPg> createState() => _AdminLostnfoundPgState();
 }
 
+// SingleTickerProviderStateMixin enables TabController animations
 class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTickerProviderStateMixin {
   int _selectedIndex = 3; // Lost/Found is index 3
+
+  // TabController - Manages main tabs (All + Status)
   late TabController _mainTabController;
-  String _searchQuery = '';
-  String _selectedCategory = 'all';
+
+  // Search and filter state
+  String _searchQuery = ''; // Search text
+  String _selectedCategory = 'all'; // Category filter
 
   @override
   void initState() {
     super.initState();
+    // Initialize TabController with 2 tabs
+    // vsync: this - Links animation to widget lifecycle (prevents memory leaks)
     _mainTabController = TabController(length: 2, vsync: this); // All + Status
   }
 
   @override
   void dispose() {
+    // Clean up: Dispose TabController to prevent memory leaks
     _mainTabController.dispose();
     super.dispose();
   }
-
+  // Navigate between admin pages
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
 
@@ -68,19 +74,21 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
   }
 
   // Get stream for "All" tab
+  //  INDEX if category filter used
   Stream<QuerySnapshot> _getAllItemsStream() {
     Query query = FirebaseFirestore.instance
         .collection('lostAndFound')
         .orderBy('postedAt', descending: true);
 
-    if (_selectedCategory != 'all') {
+    // Apply category filter if not "all"
+    if (_selectedCategory != 'all') {//index
       query = query.where('category', isEqualTo: _selectedCategory);
     }
-
     return query.snapshots();
   }
 
-  // Get stream for status-filtered items
+  // Get stream filtered by status
+  // INDEX if category filter used
   Stream<QuerySnapshot> _getStatusItemsStream(String status) {
     Query query = FirebaseFirestore.instance
         .collection('lostAndFound')
@@ -103,19 +111,20 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
       final itemName = (data['itemName'] ?? '').toLowerCase();
       final postedByName = (data['postedByName'] ?? '').toLowerCase();
       final claimedByName = (data['claimedByName'] ?? '').toLowerCase();
-
+      // Check if any field contains search query
       return itemName.contains(_searchQuery.toLowerCase()) ||
           postedByName.contains(_searchQuery.toLowerCase()) ||
           claimedByName.contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
-  // Get statistics for badges
+  // Get statistics for badges.Stream that calculates badge counts
   Stream<Map<String, int>> _getStatistics() {
     return FirebaseFirestore.instance
         .collection('lostAndFound')
         .snapshots()
         .map((snapshot) {
+      // Count items by status
       int unclaimed = 0;
       int waiting = 0;
       int confirmed = 0;
@@ -143,13 +152,14 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
   }
-
+  // Format timestamp
   String _formatDateTime(Timestamp? ts) {
     if (ts == null) return 'N/A';
     return DateFormat('MMM d, yyyy').format(ts.toDate());
   }
 
   @override
+  //ADMIN LOST N FOUND UI
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -179,6 +189,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
             ),
           ),
         ],
+        //TabBar in AppBar
         bottom: TabBar(
           controller: _mainTabController,
           indicatorColor: Colors.white,
@@ -209,6 +220,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                 color: Colors.grey[100],
                 child: Row(
                   children: [
+                    // Unclaimed count
                     Expanded(
                       child: _buildStatCard(
                         'Unclaimed',
@@ -217,6 +229,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                       ),
                     ),
                     const SizedBox(width: 12),
+                    // Waiting count
                     Expanded(
                       child: _buildStatCard(
                         'Waiting',
@@ -225,6 +238,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                       ),
                     ),
                     const SizedBox(width: 12),
+                    // Confirmed count
                     Expanded(
                       child: _buildStatCard(
                         'Confirmed',
@@ -272,7 +286,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                 ),
                 const SizedBox(height: 10),
 
-                // Category Dropdown
+                // Category Dropdown filter
                 Row(
                   children: [
                     Text(
@@ -304,10 +318,12 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                             fontWeight: FontWeight.bold,
                           ),
                           items: [
+                            // All categories option
                             DropdownMenuItem(
                               value: 'all',
                               child: Text('All', style: GoogleFonts.firaSans(fontWeight: FontWeight.bold)),
                             ),
+                            // Electronics
                             DropdownMenuItem(
                               value: 'electronics',
                               child: Row(
@@ -318,6 +334,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                                 ],
                               ),
                             ),
+                            // Personal Items
                             DropdownMenuItem(
                               value: 'personal_items',
                               child: Row(
@@ -328,6 +345,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                                 ],
                               ),
                             ),
+                            //clothing
                             DropdownMenuItem(
                               value: 'clothing',
                               child: Row(
@@ -338,6 +356,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                                 ],
                               ),
                             ),
+                            // Books & Stationery
                             DropdownMenuItem(
                               value: 'books_stationery',
                               child: Row(
@@ -348,6 +367,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                                 ],
                               ),
                             ),
+                            // ID/Cards
                             DropdownMenuItem(
                               value: 'id_cards',
                               child: Row(
@@ -358,6 +378,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                                 ],
                               ),
                             ),
+                            //Others
                             DropdownMenuItem(
                               value: 'others',
                               child: Row(
@@ -387,12 +408,13 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
               controller: _mainTabController,
               children: [
                 _buildAllTab(),
-                _buildStatusTab(),
+                _buildStatusTab(),//Status-filtered items
               ],
             ),
           ),
         ],
       ),
+      //bottom nav bar with badge (waiting)
       bottomNavigationBar: StreamBuilder<int>(
         stream: _getActiveItemsCount(),
         builder: (context, snapshot) {
@@ -415,6 +437,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                 _buildNavItem(Icons.report, 'Reports', 0),
                 _buildNavItem(Icons.inventory, 'Parcel', 1),
                 _buildNavItem(Icons.warning, 'SOS', 2),
+                // Lost/Found with badge counts
                 _buildNavItem(Icons.search, 'Lost/Found', 3, badgeCount: badgeCount),
                 _buildNavItem(Icons.announcement, 'Announce', 4),
               ],
@@ -424,7 +447,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
       ),
     );
   }
-
+  // HELPER: Build statistics card
   Widget _buildStatCard(String label, int count, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
@@ -434,6 +457,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
         border: Border.all(color: color, width: 2),
       ),
       child: Column(
+        // Count number
         children: [
           Text(
             '$count',
@@ -444,6 +468,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
             ),
           ),
           Text(
+            // Label
             label,
             style: GoogleFonts.firaSans(
               fontSize: 12,
@@ -455,12 +480,12 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
       ),
     );
   }
-
+  // BUILD: "All" tab content
   Widget _buildAllTab() {
-    return RefreshIndicator(
+    return RefreshIndicator(// Pull down to refresh
       onRefresh: () async {
         await Future.delayed(const Duration(seconds: 1));
-        setState(() {});
+        setState(() {}); // Refresh UI
       },
       child: StreamBuilder<QuerySnapshot>(
         stream: _getAllItemsStream(),
@@ -478,6 +503,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
             );
           }
 
+          // Empty state
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return _buildEmptyState(
               Icons.inbox_outlined,
@@ -487,6 +513,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
           }
 
           final allItems = snapshot.data!.docs;
+          // Apply search filter
           final filteredItems = _filterBySearch(allItems);
 
           if (filteredItems.isEmpty) {
@@ -496,7 +523,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
               'Try different keywords or category',
             );
           }
-
+          // Build list of items
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: filteredItems.length,
@@ -511,11 +538,13 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
     );
   }
 
+  // BUILD: Status tab content (with nested tabs)
   Widget _buildStatusTab() {
-    return DefaultTabController(
-      length: 3,
+    return DefaultTabController(//Nested tabs (Unclaimed, Waiting, Confirmed)
+      length: 3,// 3 status tabs
       child: Column(
         children: [
+          // Sub-tab bar
           Container(
             color: Colors.grey[100],
             child: TabBar(
@@ -530,6 +559,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
               ],
             ),
           ),
+          // Sub-tab content
           Expanded(
             child: TabBarView(
               children: [
@@ -544,6 +574,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
     );
   }
 
+  // BUILD: Status-filtered list
   Widget _buildStatusItemsList(String status) {
     return RefreshIndicator(
       onRefresh: () async {
@@ -557,6 +588,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
             return const Center(child: CircularProgressIndicator());
           }
 
+          // Empty state
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             String message;
             String subtitle;
@@ -607,12 +639,13 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
     );
   }
 
+  // BUILD: Item card with image thumbnail
   Widget _buildItemCard(String itemId, Map<String, dynamic> data) {
     final itemName = data['itemName'] ?? 'Untitled';
     final category = data['category'] ?? 'others';
     final location = data['location'] ?? 'Unknown';
     final status = data['status'] ?? 'unclaimed';
-    final imageUrl = data['photoUrl'] as String?;
+    final imageUrl = data['photoUrl'] as String?;// Image URL from Firebase Storage
     final postedByName = data['postedByName'] ?? 'Unknown';
     final postedBy = data['postedBy'] as String?;
     final claimedByName = data['claimedByName'] as String?;
@@ -621,7 +654,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
     final claimedAt = data['claimedAt'] as Timestamp?;
 
     final categoryInfo = _getCategoryInfo(category);
-
+    // Status badge appearance
     Color statusColor;
     String statusText;
     IconData statusIcon;
@@ -647,7 +680,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
         margin: const EdgeInsets.only(bottom: 12),
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
+        child: InkWell(// Makes entire card tappable with ripple effect
           onTap: () {
             Navigator.push(
               context,
@@ -667,7 +700,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                 children: [
             Row(
             children: [
-            // Image thumbnail
+            // Image thumbnail- Image loading from Firebase Storage
             ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: imageUrl != null && imageUrl.isNotEmpty
@@ -676,6 +709,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
               width: 60,
               height: 60,
               fit: BoxFit.cover,
+              //Error handling for broken images
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   width: 60,
@@ -700,6 +734,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
               children: [
                 Row(
                   children: [
+                    // Category badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
@@ -723,6 +758,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
                       ),
                     ),
                     const Spacer(),
+                    // Status badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
@@ -1164,7 +1200,7 @@ class _AdminLostnfoundPgState extends State<AdminLostnfoundPg> with SingleTicker
   }
 }
 
-// ===== ADMIN ITEM DETAIL PAGE =====
+//ADMIN ITEM DETAIL PAGE
 class AdminItemDetailPage extends StatefulWidget {
   final String itemId;
   final Map<String, dynamic> itemData;

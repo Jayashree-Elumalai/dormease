@@ -1,11 +1,10 @@
-// 🆕 NEW FILE: update_registration_pg.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class UpdateRegistrationPage extends StatefulWidget {
-  final String uid;
+  final String uid;// users uid
   final Map<String, dynamic> currentData;
 
   const UpdateRegistrationPage({

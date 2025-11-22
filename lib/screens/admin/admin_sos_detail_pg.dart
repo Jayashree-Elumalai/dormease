@@ -24,7 +24,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
     super.dispose();
   }
 
-  // ✅ Acknowledge alert (mark as "responding")
+  // acknowledge alert (mark as "responding")
   Future<void> _acknowledgeAlert() async {
     setState(() => _isAcknowledging = true);
 
@@ -32,7 +32,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) throw Exception('Not logged in');
 
-      // ✅ Get current alert status
+      // Get current alert status
       final alertDoc = await FirebaseFirestore.instance
           .collection('sosAlerts')
           .doc(widget.alertId)
@@ -44,7 +44,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
 
       final currentStatus = alertDoc.data()?['status'];
 
-      // ✅ Only allow acknowledging if status is 'active'
+      // Only allow acknowledging if status is 'active'
       if (currentStatus != 'active') {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +60,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
         return;
       }
 
-      // ✅ Update Firestore
+      //  Update Firestore
       await FirebaseFirestore.instance
           .collection('sosAlerts')
           .doc(widget.alertId)
@@ -97,9 +97,9 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
     }
   }
 
-  // ✅ Resolve alert (mark as resolved with notes)
+  // Resolve alert (mark as resolved with notes)
   Future<void> _resolveAlert() async {
-    // ✅ Validate notes (minimum 10 characters)
+    // Validate notes (minimum 10 characters)
     if (_notesController.text.trim().length < 10) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -113,7 +113,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
       return;
     }
 
-    // ✅ Confirmation dialog
+    // Confirmation dialog
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -177,7 +177,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) throw Exception('Not logged in');
 
-      // ✅ Update Firestore
+      // Update Firestore
       await FirebaseFirestore.instance
           .collection('sosAlerts')
           .doc(widget.alertId)
@@ -190,7 +190,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
 
       if (!mounted) return;
 
-      // ✅ Navigate back
+      // Navigate back
       Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -278,7 +278,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ✅ Status Card
+                // Status Card
                 Container(
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
@@ -318,7 +318,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
 
                 const SizedBox(height: 20),
 
-                // ✅ Student Info Card
+                // Student Info Card
                 _buildInfoCard(
                   icon: Icons.person,
                   label: 'Student',
@@ -326,7 +326,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                   color: const Color(0xFF1800AD),
                 ),
 
-                // ✅ Location Card
+                // Location Card
                 _buildInfoCard(
                   icon: Icons.location_on,
                   label: 'Location',
@@ -334,7 +334,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                   color: Colors.red[700]!,
                 ),
 
-                // ✅ Category Card
+                // Category Card
                 _buildInfoCard(
                   icon: _getCategoryIcon(category),
                   label: 'Emergency Type',
@@ -342,7 +342,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                   color: _getCategoryColor(category),
                 ),
 
-                // ✅ Description (if exists)
+                // Description (if exists)
                 if (description != null && description.isNotEmpty)
                   _buildInfoCard(
                     icon: Icons.description,
@@ -353,7 +353,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
 
                 const SizedBox(height: 5),
 
-                // ✅ Timeline
+                // Timeline
                 Text(
                   'Timeline',
                   style: GoogleFonts.firaSans(
@@ -416,7 +416,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
 
                 const SizedBox(height: 10),
 
-                // ✅ Admin Notes Section (only if acknowledged or resolved)
+                // Admin Notes Section (only if acknowledged or resolved)
                 if (status == 'acknowledged' || status == 'resolved') ...[
                   Text(
                     status == 'resolved' ? 'Resolution Notes' : 'Add Notes',
@@ -429,7 +429,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                   const SizedBox(height: 5),
 
                   if (status == 'resolved' && adminNotes != null)
-                  // ✅ Show notes (read-only)
+                  // Show notes (read-only)
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -447,7 +447,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                       ),
                     )
                   else
-                  // ✅ Notes input (editable)
+                  // Notes input (editable)
                     TextField(
                       controller: _notesController,
                       maxLines: 4,
@@ -482,12 +482,12 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                       ),
                     ),
 
-                  const SizedBox(height: 10),//space before mark as resolved
+                  const SizedBox(height: 10),
                 ],
 
-                // ✅ Action Buttons
+                // Action Buttons
                 if (status == 'active')
-                // ✅ Acknowledge button (only if active)
+                // Acknowledge button (only if active)
                   SizedBox(
                     width: double.infinity,
                     height: 60,
@@ -520,7 +520,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
                   ),
 
                 if (status == 'acknowledged')
-                // ✅ Resolve button (only if acknowledged)
+                // Resolve button (only if acknowledged)
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -560,7 +560,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
     );
   }
 
-  // ✅ Helper: Info Card
+  // Helper: Info Card
   Widget _buildInfoCard({
     required IconData icon,
     required String label,
@@ -609,7 +609,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
     );
   }
 
-  // ✅ Helper: Timeline Item
+  // Helper: Timeline Item
   Widget _buildTimelineItem({
     required IconData icon,
     required String label,
@@ -656,7 +656,7 @@ class _AdminSosDetailPageState extends State<AdminSosDetailPage> {
     );
   }
 
-  // ✅ Helper functions
+  // Helper functions
   Color _getStatusColor(String status) {
     switch (status) {
       case 'active':

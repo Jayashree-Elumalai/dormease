@@ -14,28 +14,28 @@ dependencies:
   # Icons
   cupertino_icons: ^1.0.8
 
-  # Firebase (keep versions compatible with each other)
+  # Firebase
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.0
   cloud_firestore: ^5.4.0
-  firebase_storage: ^12.3.2  # ✅ NEW - For image uploads
+  firebase_storage: ^12.3.2  # For image uploads
 
 
-  # Google Fonts (optional for nicer UI)
+  # Google Fonts
   google_fonts: ^6.2.1
 
   # Date formatting
   intl: ^0.19.0
 
-  # 🔍 Typeahead (for searchable dropdown)
+  # Typeahead (for searchable dropdown)
   flutter_typeahead: ^5.2.0
 
-  # ✅ NEW - Image picker and compression
+  #  Image picker and compression
   image_picker: ^1.1.2
   flutter_image_compress: ^2.3.0
   path_provider: ^2.1.4
 
-  # ✅ Firebase Cloud Messaging + Local Notifications
+  # Firebase Cloud Messaging + Local Notifications
   firebase_messaging: ^15.1.3
   flutter_local_notifications: ^18.0.1
   permission_handler: ^11.3.1
@@ -48,6 +48,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets (make sure logo is placed at assets/images/)
+  # Assets (logo)
   assets:
     - assets/images/

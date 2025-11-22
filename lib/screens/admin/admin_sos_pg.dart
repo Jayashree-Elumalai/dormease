@@ -1,15 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../login_pg.dart';
 import 'admin_annnouncements_pg.dart';
 import 'admin_lostnfound_pg.dart';
 import 'admin_parcel_pg.dart';
 import 'admin_report_pg.dart';
-import 'admin_sos_detail_pg.dart'; // ✅ NEW - we'll create this
+import 'admin_sos_detail_pg.dart';
 import '../../services/auth_service.dart';
 
 class AdminSosPg extends StatefulWidget {
@@ -26,7 +24,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this); // ✅ Active + Resolved tabs
+    _tabController = TabController(length: 2, vsync: this); // Active + Resolved tabs
   }
 
   @override
@@ -64,7 +62,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ Get count of active/acknowledged alerts for badge
+  // Get count of active/acknowledged alerts for badge
   Stream<int> _getActiveAlertCount() {
     return FirebaseFirestore.instance
         .collection('sosAlerts')
@@ -73,17 +71,17 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
         .map((snapshot) => snapshot.docs.length);
   }
 
-  // ✅ Get active/acknowledged alerts stream
+  // Get active/acknowledged alerts stream
   Stream<QuerySnapshot> _getAlertsStream(String status) {
     if (status == 'active_acknowledged') {
-      // ✅ Show both active and acknowledged
+      // Show both active and acknowledged
       return FirebaseFirestore.instance
           .collection('sosAlerts')
           .where('status', whereIn: ['active', 'acknowledged'])
           .orderBy('createdAt', descending: true)
           .snapshots();
     } else {
-      // ✅ Resolved only
+      // Resolved only
       return FirebaseFirestore.instance
           .collection('sosAlerts')
           .where('status', isEqualTo: 'resolved')
@@ -132,7 +130,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
           tabs: const [
-            Tab(text: 'Active'), // ✅ Active + Acknowledged
+            Tab(text: 'Active'), // Active + Acknowledged
             Tab(text: 'Resolved'),
           ],
         ),
@@ -140,8 +138,8 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildAlertsList('active_acknowledged'), // ✅ Active/Acknowledged
-          _buildAlertsList('resolved'), // ✅ Resolved
+          _buildAlertsList('active_acknowledged'), // Active/Acknowledged
+          _buildAlertsList('resolved'), // Resolved
         ],
       ),
       bottomNavigationBar: StreamBuilder<int>(
@@ -160,14 +158,13 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
                 ),
               ],
             ),
-           // ✅ FIXED
             child: BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
               currentIndex: _selectedIndex,
               onTap: _onItemTapped,
               selectedItemColor: const Color(0xFF1800AD),
               unselectedItemColor: Colors.grey,
-              backgroundColor: Colors.transparent,  // ✅ Make transparent since Container has decoration
+              backgroundColor: Colors.transparent,  // Make transparent since Container has decoration
               elevation: 0,
               items: [
                 const BottomNavigationBarItem(icon: Icon(Icons.report), label: 'Reports'),
@@ -217,7 +214,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ Build alerts list (Active or Resolved)
+  // Build alerts list (Active or Resolved)
   Widget _buildAlertsList(String status) {
     return StreamBuilder<QuerySnapshot>(
       stream: _getAlertsStream(status),
@@ -251,7 +248,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ Build alert card
+  // Build alert card
   Widget _buildAlertCard(String alertId, Map<String, dynamic> data) {
     final status = data['status'] as String;
     final studentName = data['studentName'] ?? 'Unknown';
@@ -269,7 +266,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
       elevation: 3,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: statusColor, width: 2), // ✅ Colored border
+        side: BorderSide(color: statusColor, width: 2), // Colored border
       ),
       child: InkWell(
         onTap: () {
@@ -286,7 +283,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ Status badge
+              // Status badge
               Row(
                 children: [
                   Container(
@@ -313,7 +310,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // ✅ Category badge
+                  // Category badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -334,7 +331,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
 
               const SizedBox(height: 10),
 
-              // ✅ Student info
+              // Student info
               Row(
                 children: [
                   Icon(Icons.person, size: 18, color: Colors.grey[700]),
@@ -354,7 +351,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
 
               const SizedBox(height: 6),
 
-              // ✅ Location
+              // Location
               Row(
                 children: [
                   Icon(Icons.location_on, size: 18, color: Colors.grey[700]),
@@ -374,7 +371,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
 
               const SizedBox(height: 6),
 
-              // ✅ Timestamp
+              // Timestamp
               Row(
                 children: [
                   Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
@@ -391,7 +388,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
                 ],
               ),
 
-              // ✅ Show who acknowledged (if applicable)
+              // Show who acknowledged (if applicable)
               if (acknowledgedBy != null) ...[
                 const SizedBox(height: 6),
                 FutureBuilder<DocumentSnapshot>(
@@ -423,7 +420,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
 
               const SizedBox(height: 10),
 
-              // ✅ Action button
+              // Action button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -459,7 +456,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ Empty state
+  // Empty state
   Widget _buildEmptyState(String status) {
     return Center(
       child: Column(
@@ -494,7 +491,7 @@ class _AdminSosPgState extends State<AdminSosPg> with SingleTickerProviderStateM
     );
   }
 
-  // ✅ Helper functions
+  // Helper functions
   Color _getStatusColor(String status) {
     switch (status) {
       case 'active':

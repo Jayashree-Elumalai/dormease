@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
-// flutter_typeahead v5
+// flutter_typeahead v5- Searchable dropdown with autocomplete
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
-import 'package:dormease_app/screens/login_pg.dart';
 import 'package:dormease_app/screens/admin/admin_annnouncements_pg.dart';
 import 'package:dormease_app/screens/admin/admin_lostnfound_pg.dart';
 import 'package:dormease_app/screens/admin/admin_report_pg.dart';
@@ -29,12 +27,13 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
   String? selectedStudentName; // display name
   String? selectedStudentRegId;//actual student id
 
-  // Controller provided by TypeAheadField (assigned inside builder)
+  // Controller for TypeAheadField (assigned inside builder)
   TextEditingController? _studentFieldController;
 
-  // 🔄 CHANGED: Changed from showClaimed to parcelFilter with 3 options
+  //Filter state: 'unclaimed', 'waiting', 'confirmed'
   String parcelFilter = 'unclaimed'; // 'unclaimed', 'waiting', 'confirmed'
 
+  //Navigate between admin pages
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
 
@@ -64,7 +63,9 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     );
   }
 
+  // Send parcel notification to selected student
   Future<void> _sendParcelNotification() async {
+    // Ensure a student is selected
     if (selectedStudentId == null || selectedStudentId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -76,7 +77,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     }
 
     try {
-
+      // create new parcel notification
       await FirebaseFirestore.instance.collection('parcels').add({
         'studentUid': selectedStudentId,   // Firebase UID
         'studentId': selectedStudentRegId, //Student ID
@@ -89,6 +90,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
         'confirmedBy': null,
       });
 
+      //success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Parcel notification sent!"),
@@ -96,13 +98,14 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
         ),
       );
 
+      // Clear selection after sending
       setState(() {
         selectedStudent = null;
         selectedStudentId = null;
         selectedStudentName = null;
         selectedStudentRegId = null;
         // clear the text field shown to admin
-        _studentFieldController?.clear();
+        _studentFieldController?.clear(); // Clear search field
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -119,6 +122,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     try {
       final adminUid = FirebaseAuth.instance.currentUser?.uid;
 
+      //update parcel to confirmed status
       await FirebaseFirestore.instance.collection('parcels').doc(parcelId).update({
         'confirmed': true,
         'confirmedAt': FieldValue.serverTimestamp(),
@@ -141,6 +145,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     }
   }
 
+  //Format timestamp to readable date
   String _formatTime(Timestamp? ts) {
     if (ts == null) return "N/A";
     return DateFormat('dd MMM, h:mm a').format(ts.toDate());
@@ -152,6 +157,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
   }
 
   @override
+  //ADMIN PARCEL PG UI
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -189,23 +195,25 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ===== Searchable student field (TypeAheadField v5) =====
-            // 🔄 CHANGED: Now filters by approvalStatus = 'approved'
+
+            //Searchable student field (TypeAheadField v5)-Autocomplete search with dropdown suggestions
             TypeAheadField<Map<String, dynamic>>(
+              //Fetch suggestions as user types
               suggestionsCallback: (pattern) async {
                 final q = pattern.toLowerCase().trim();
                 if (q.isEmpty) return <Map<String, dynamic>>[];
 
-                // 🆕 NEW: Filter to show only approved students
+                // Search. Filter to show only approved students
                 final snap = await FirebaseFirestore.instance
                     .collection('users')
                     .where('role', isEqualTo: 'student')
-                    .where('approvalStatus', isEqualTo: 'approved') // 🆕 NEW
+                    .where('approvalStatus', isEqualTo: 'approved')
                     .where('nameLower', isGreaterThanOrEqualTo: q)
-                    .where('nameLower', isLessThanOrEqualTo: '$q\uf8ff')
+                    .where('nameLower', isLessThanOrEqualTo: '$q\uf8ff')// Range query
                     .limit(20)
                     .get();
 
+                // Convert to list of maps
                 return snap.docs.map((d) {
                   final data = d.data();
                   return {
@@ -216,6 +224,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
                 }).toList();
               },
 
+              // BUILDER: Build text field UI
               builder: (context, controller, focusNode) {
                 _studentFieldController = controller;
                 return TextField(
@@ -231,6 +240,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
                 );
               },
 
+              // BUILDER: Build each suggestion item
               itemBuilder: (context, suggestion) {
                 return ListTile(
                   title: Text(suggestion['name'] as String),
@@ -240,11 +250,13 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
                 );
               },
 
+              // BUILDER: Show message when no results found
               emptyBuilder: (context) => const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Text("No students found"),
               ),
 
+              // When user selects a suggestion
               onSelected: (suggestion) {
                 setState(() {
                   selectedStudentId = suggestion['uid'] as String;
@@ -259,6 +271,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
                 child: Center(child: CircularProgressIndicator()),
               ),
 
+              // BUILDER: Style for dropdown container
               decorationBuilder: (context, child) {
                 return Material(
                   elevation: 4,
@@ -270,6 +283,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
 
             const SizedBox(height: 16),
 
+            // Send parcel notification button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1800AD),
@@ -288,7 +302,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
 
             const SizedBox(height: 16),
 
-            // 🔄 CHANGED: 3 toggle buttons instead of 2
+            // 3 status toggle buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -366,10 +380,10 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
             ),
             const SizedBox(height: 12),
 
-            // 🔄 CHANGED: Different queries based on filter
+            // parcel list (filtered by status)
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                key: ValueKey(parcelFilter),
+                key: ValueKey(parcelFilter),// Rebuild when filter changes
                 stream: _getParcelStream(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
@@ -378,6 +392,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
 
                   final parcels = snapshot.data!.docs;
 
+                  // Empty state
                   if (parcels.isEmpty) {
                     String emptyMessage;
                     switch (parcelFilter) {
@@ -401,6 +416,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
                     );
                   }
 
+                  // Build list of parcel cards
                   return ListView.builder(
                     itemCount: parcels.length,
                     itemBuilder: (context, index) {
@@ -415,6 +431,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
           ],
         ),
       ),
+      //bottom navbar
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
@@ -432,13 +449,13 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     );
   }
 
-  // 🆕 NEW: Get stream based on current filter
+  // Get stream based on current filter
   Stream<QuerySnapshot> _getParcelStream() {
     Query query = FirebaseFirestore.instance.collection('parcels');
 
     switch (parcelFilter) {
       case 'unclaimed':
-      // Show parcels that haven't been claimed by student yet
+      // Show parcels haven't been claimed by student yet
         query = query
             .where('claimed', isEqualTo: false)
             .orderBy('sentAt', descending: true);
@@ -446,7 +463,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
 
       case 'waiting':
       // Show parcels claimed by student but not confirmed by admin
-        query = query
+        query = query //index
             .where('claimed', isEqualTo: true)
             .where('confirmed', isEqualTo: false)
             .orderBy('claimedAt', descending: true);
@@ -463,7 +480,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     return query.snapshots();
   }
 
-  // 🔄 CHANGED: Build different card layouts based on filter
+  // Build diff card ui(layouts) based on filter
   Widget _buildParcelCard(String parcelId, Map<String, dynamic> data) {
     final studentName = data['studentName'] ?? 'Unknown';
     final studentId = data['studentId'] ?? 'N/A';
@@ -488,7 +505,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
               ),
             ),
 
-            // 🆕 NEW: Show Student ID
+            //Student ID
             Text(
               'Student ID: $studentId',
               style: GoogleFonts.firaSans(
@@ -505,7 +522,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
             ] else if (parcelFilter == 'waiting') ...[
               _buildInfoRow(Icons.access_time, 'Claimed', _formatTime(claimedAt)),
               const SizedBox(height: 8),
-              // 🆕 NEW: Confirm button for waiting parcels
+              // Confirm button for waiting parcels
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -522,6 +539,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
                 ),
               ),
             ] else if (parcelFilter == 'confirmed') ...[
+              // Show claimed and confirmed times
               _buildInfoRow(Icons.access_time, 'Claimed', _formatTime(claimedAt)),
               _buildInfoRow(Icons.check_circle, 'Confirmed', _formatTime(confirmedAt)),
             ],
@@ -531,7 +549,7 @@ class _AdminParcelPgState extends State<AdminParcelPg> {
     );
   }
 
-  // 🆕 NEW: Helper to build info rows
+  // Helper to build info rows
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [

@@ -9,96 +9,99 @@ class FCMService {
   /// Initialize FCM and save token to Firestore
   static Future<void> initializeFCM() async {
     try {
-      debugPrint('🔵 Starting FCM initialization...');
-      // Request permission (iOS/Web)
+      debugPrint('Starting FCM initialization...');
+      // Request notification permission
       NotificationSettings settings = await _messaging.requestPermission(
-        alert: true,
+        alert: true, // Show notification alerts
         announcement: false,
-        badge: true,
+        badge: true, // Show badge count on app icon
         carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
+        criticalAlert: false, // Critical alerts (special permission needed)
+        provisional: false, // Provisional (silent) notifications
+        sound: true, // Play notification sound
       );
 
-      debugPrint('🔵 FCM permission status: ${settings.authorizationStatus}');
+      debugPrint(' FCM permission status: ${settings.authorizationStatus}');
 
+      // Check permission status
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        debugPrint('✅ FCM: User granted permission');
+        debugPrint('FCM: User granted permission');
       } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-        debugPrint('⚠️ FCM: User granted provisional permission');
+        debugPrint('FCM: User granted provisional permission');
       } else {
-        debugPrint('❌ FCM: User declined permission');
+        debugPrint('FCM: User declined permission');
         return;
       }
 
       // Get FCM token
-      debugPrint('🔵 Requesting FCM token...');
+      debugPrint(' Requesting FCM token...');
       String? token = await _messaging.getToken();
 
       if (token != null) {
-        debugPrint('✅ FCM Token received: $token');
-        debugPrint('🔵 Saving token to Firestore...');
+        debugPrint('FCM Token received: $token');
+        debugPrint(' Saving token to Firestore...');
+        //Save token to Firestore (so Cloud Function can send notifications)
         await _saveFCMToken(token);
-        debugPrint('✅ Token save operation completed');
+        debugPrint('Token save operation completed');
       } else {
-        debugPrint('❌ FCM: Failed to get token');
+        debugPrint('FCM: Failed to get token');
 
-        // ✅ RETRY: Try again after 2 seconds
-        debugPrint('🔄 Retrying FCM token request in 2 seconds...'); // ✅ ADDED
+        // RETRY: Try again after 2 seconds
+        debugPrint('Retrying FCM token request in 2 seconds...');
         await Future.delayed(const Duration(seconds: 2));
         token = await _messaging.getToken();
 
         if (token != null) {
-          debugPrint('✅ FCM Token received on retry: $token');
+          debugPrint('FCM Token received on retry: $token');
           await _saveFCMToken(token);
         } else {
-          debugPrint('❌ FCM: Token still null after retry');
+          debugPrint(' FCM: Token still null after retry');
         }
       }
 
-      // Listen for token refresh
+      // Listen for token refresh-FCM tokens can expire or change
       _messaging.onTokenRefresh.listen((newToken) {
-        debugPrint('🔄 FCM Token refreshed: $newToken');
-        _saveFCMToken(newToken);
+        debugPrint('FCM Token refreshed: $newToken');
+        _saveFCMToken(newToken);// Update Firestore with new token
       });
-      debugPrint('✅ FCM initialization complete');
+      debugPrint('FCM initialization complete');
     } catch (e) {
-      debugPrint('❌ FCM initialization error: $e');
-      debugPrint('❌ Stack trace: ${StackTrace.current}');
+      debugPrint('FCM initialization error: $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
     }
   }
 
   /// Save FCM token to Firestore user document
   static Future<void> _saveFCMToken(String token) async {
     try {
-      debugPrint('🔵 Attempting to save FCM token...'); // ✅ ADDED
+      debugPrint('Attempting to save FCM token...');
 
+      // Get current logged-in user
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        debugPrint('❌ FCM: No user logged in');
+        debugPrint('FCM: No user logged in');
         return;
       }
 
-      debugPrint('🔵 Current user UID: ${user.uid}'); // ✅ ADDED
-
+      debugPrint(' Current user UID: ${user.uid}'); // ADDED
+      // Reference to user doc in Firestore
       final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
-      // ✅ SIMPLIFIED: Just set/update the array, don't check first
+      // SIMPLIFIED: Add token. Just set/update the array
       await userRef.set({
         'fcmTokens': FieldValue.arrayUnion([token]),
-      }, SetOptions(merge: true)); // ✅ merge: true preserves other fields
+      }, SetOptions(merge: true)); // merge: true preserves other fields
 
-      debugPrint('✅ FCM: Token saved to Firestore');
+      debugPrint('FCM: Token saved to Firestore');
 
-      // ✅ VERIFY: Read back to confirm
+      // VERIFY: Read back to confirm
       final doc = await userRef.get();
       final tokens = doc.data()?['fcmTokens'] as List?;
-      debugPrint('🔍 Verification: fcmTokens in Firestore: $tokens'); // ✅ ADDED
+      debugPrint('Verification: fcmTokens in Firestore: $tokens');
 
     } catch (e) {
-      debugPrint('❌ FCM: Error saving token: $e');
-      debugPrint('❌ Stack trace: ${StackTrace.current}'); // ✅ ADDED
+      debugPrint(' FCM: Error saving token: $e');
+      debugPrint('Stack trace: ${StackTrace.current}');
     }
   }
 
@@ -107,17 +110,17 @@ class FCMService {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
-
+      // Get current device's token
       String? token = await _messaging.getToken();
       if (token == null) return;
-
+      // Remove token from Firestore array
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'fcmTokens': FieldValue.arrayRemove([token]),
       });
 
-      debugPrint('✅ FCM: Token removed from Firestore');
+      debugPrint('FCM: Token removed from Firestore');
     } catch (e) {
-      debugPrint('❌ FCM: Error removing token: $e');
+      debugPrint('FCM: Error removing token: $e');
     }
   }
 
@@ -125,9 +128,9 @@ class FCMService {
   static Future<void> deleteToken() async {
     try {
       await _messaging.deleteToken();
-      debugPrint('✅ FCM: Token deleted from device');
+      debugPrint('FCM: Token deleted from device');
     } catch (e) {
-      debugPrint('❌ FCM: Error deleting token: $e');
+      debugPrint('FCM: Error deleting token: $e');
     }
   }
 }

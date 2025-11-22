@@ -112,7 +112,7 @@ class _AdminReportPgState extends State<AdminReportPg> {
     });
   }
 
-  // 🆕 ADD THIS ENTIRE METHOD FOR BADGE
+
   Stream<int> _getActiveReportCount() {
     return FirebaseFirestore.instance
         .collection('reports')
@@ -465,7 +465,7 @@ class _AdminReportPgState extends State<AdminReportPg> {
                         value: categoryFilter,
                         isExpanded: true,
                         underline: const SizedBox(),
-                        isDense: true, // 🆕 ADD THIS LINE
+                        isDense: true,
                         itemHeight: 48,
                         style: GoogleFonts.firaSans(
                           color: const Color(0xFF1800AD),
@@ -665,7 +665,7 @@ class _AdminReportPgState extends State<AdminReportPg> {
         ),
       ),
         bottomNavigationBar: StreamBuilder<int>(
-          stream: _getActiveReportCount(), // 🆕 Use the new method
+          stream: _getActiveReportCount(),
           builder: (context, snapshot) {
             final badgeCount = snapshot.data ?? 0;
             return Container(
@@ -1205,7 +1205,7 @@ class _AdminReportPgState extends State<AdminReportPg> {
       return categoryMap[category] ?? categoryMap['other']!;
     }
 
-    // 🆕 ADD THIS ENTIRE METHOD
+
     Widget _buildNavItem(IconData icon, String label, int index, {int badgeCount = 0}) {
       bool isSelected = _selectedIndex == index;
       Color color = isSelected ? const Color(0xFF1800AD) : Colors.grey;
@@ -1369,18 +1369,18 @@ class _AdminReportDetailPageState extends State<AdminReportDetailPage> {
           'Mark as Ongoing?',
           style: GoogleFonts.firaSans(
             fontSize: 18,
-            fontWeight: FontWeight.bold, // 🆕 BOLD
+            fontWeight: FontWeight.bold,
             color: const Color(0xFF1800AD),
           ),
-          textAlign: TextAlign.center, // 🆕 CENTER
+          textAlign: TextAlign.center,
         ),
         content: Text(
           'This will mark the report as ongoing and notify the student that work has begun.',
           style: GoogleFonts.firaSans(
             fontSize: 14,
-            fontWeight: FontWeight.bold, // 🆕 BOLD
+            fontWeight: FontWeight.bold,
           ),
-          textAlign: TextAlign.center, // 🆕 CENTER
+          textAlign: TextAlign.center,
         ),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         actions: [
@@ -1470,18 +1470,18 @@ class _AdminReportDetailPageState extends State<AdminReportDetailPage> {
           'Mark as Completed?',
           style: GoogleFonts.firaSans(
             fontSize: 18,
-            fontWeight: FontWeight.bold, // 🆕 BOLD
+            fontWeight: FontWeight.bold,
             color: const Color(0xFF1800AD),
           ),
-          textAlign: TextAlign.center, // 🆕 CENTER
+          textAlign: TextAlign.center,
         ),
         content: Text(
           'This will mark the report as completed and notify the student that the issue has been resolved.',
           style: GoogleFonts.firaSans(
             fontSize: 14,
-            fontWeight: FontWeight.bold, // 🆕 BOLD
+            fontWeight: FontWeight.bold,
           ),
-          textAlign: TextAlign.center, // 🆕 CENTER
+          textAlign: TextAlign.center,
         ),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         actions: [
@@ -1880,7 +1880,7 @@ class _AdminReportDetailPageState extends State<AdminReportDetailPage> {
                 _getFormattedDateTime(completedAt),
                 Colors.green,
               ),
-            //const SizedBox(height: 0),
+
 
             // Admin Notes Section (visible for all statuses, editable for non-completed)
             if (status != 'completed') ...[

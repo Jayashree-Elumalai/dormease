@@ -9,7 +9,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../login_pg.dart';
 import 'home_pg.dart';
 import 'connect_pg.dart';
 import 'parcel_pg.dart';
@@ -34,7 +33,7 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // ✅ ADDED: Listen to tab changes to rebuild UI
+    // Listen to tab changes to rebuild UI
     _tabController.addListener(() {
       setState(() {}); // Rebuild to show/hide search bar
     });
@@ -478,7 +477,7 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
               builder: (_) => ItemDetailPage(
                   itemId: itemId,
                   itemData: data,
-                  showDeleteButton: isMyItem, // ✅ ADDED
+                  showDeleteButton: isMyItem,
                   showCancelButton: showCancelButton,
               ),
             ),
@@ -673,7 +672,7 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
                                   builder: (_) => ItemDetailPage(
                                       itemId: itemId,
                                       itemData: data,
-                                      showDeleteButton: isMyItem, // ✅ ADDED
+                                      showDeleteButton: isMyItem,
                                       showCancelButton: showCancelButton,
                                   ),
                                 ),
@@ -760,8 +759,8 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Confirm Claim', // ✅ FIXED
-                style: GoogleFonts.firaSans(fontWeight: FontWeight.bold, color: Colors.green)), // ✅ FIXED
+            child: Text('Confirm Claim',
+                style: GoogleFonts.firaSans(fontWeight: FontWeight.bold, color: Colors.green)),
           ),
         ],
       ),
@@ -770,14 +769,14 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
     if (confirm != true) return;
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser; // ✅ ADDED
-      if (currentUser == null) return; // ✅ ADDED
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) return;
 
-      final userDoc = await FirebaseFirestore.instance // ✅ ADDED
+      final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser.uid)
           .get();
-      final userName = userDoc.data()?['name'] ?? 'Unknown'; // ✅ ADDED
+      final userName = userDoc.data()?['name'] ?? 'Unknown';
 
       await FirebaseFirestore.instance.collection('lostAndFound').doc(itemId).update({
         'status': 'waiting',
@@ -790,7 +789,7 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Item claimed. Waiting for admin confirmation.', // ✅ FIXED
+            'Item claimed. Waiting for admin confirmation.',
             style: GoogleFonts.firaSans(fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.green,
@@ -815,7 +814,7 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         title: Column(
           children: [
-            const Icon(Icons.cancel_outlined, size: 50, color: Colors.orange),  // ✅ Added icon
+            const Icon(Icons.cancel_outlined, size: 50, color: Colors.orange),
             const SizedBox(height: 8),
             Text(
               'Cancel Claim?',
@@ -831,7 +830,7 @@ class _LostFoundPageState extends State<LostFoundPage> with SingleTickerProvider
           'This will move "$itemName" back to unclaimed items',
           style: GoogleFonts.firaSans(
             fontSize: 14,
-            fontWeight: FontWeight.bold,  // ✅ Made bold
+            fontWeight: FontWeight.bold,
             color: const Color(0xFF1800AD),
           ),
           textAlign: TextAlign.center,
@@ -1727,19 +1726,19 @@ class _ReportFoundItemPageState extends State<ReportFoundItemPage> {
 class ItemDetailPage extends StatefulWidget {
   final String itemId;
   final Map<String, dynamic> itemData;
-  final bool showDeleteButton; // ✅ ADDED
-  final bool showCancelButton; // ✅ ADDED
+  final bool showDeleteButton;
+  final bool showCancelButton;
 
   const ItemDetailPage({
     super.key,
     required this.itemId,
     required this.itemData,
-    this.showDeleteButton = false, // ✅ ADDED
-    this.showCancelButton = false, // ✅ ADDED
+    this.showDeleteButton = false,
+    this.showCancelButton = false,
   });
 
   @override
-  State<ItemDetailPage> createState() => _ItemDetailPageState(); // ✅ ADDED
+  State<ItemDetailPage> createState() => _ItemDetailPageState();
 }
 
 class _ItemDetailPageState extends State<ItemDetailPage> {
@@ -1830,31 +1829,31 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
           style: GoogleFonts.dangrek(color: Colors.white, fontSize: 22),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
-        // ✅ ADDED: Actions for delete and cancel
-        actions: [if (widget.showCancelButton) // ✅ Cancel claim button - Now with red styling
+        // Actions for delete and cancel
+        actions: [if (widget.showCancelButton) // Cancel claim button - Now with red styling
           Padding(
-            padding: const EdgeInsets.only(right: 8), // ✅ ADDED: spacing from edge
+            padding: const EdgeInsets.only(right: 8),
             child: ElevatedButton(
               onPressed: () => _cancelClaim(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, // ✅ ADDED: Red background
-                foregroundColor: Colors.white, // ✅ ADDED: White text
-                padding: const EdgeInsets.symmetric(horizontal: 10), // ✅ ADDED: padding
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20), // ✅ ADDED: rounded corners
-                  side: const BorderSide(color: Colors.white, width: 2), // ✅ ADDED: white border
+                  borderRadius: BorderRadius.circular(20),
+                  side: const BorderSide(color: Colors.white, width: 2),
                 ),
-                elevation: 3, // ✅ ADDED: shadow for depth
+                elevation: 3,
               ),
-              child: Row( // ✅ ADDED: Icon + Text for better visibility
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.cancel, size: 18), // ✅ ADDED: icon
-                  const SizedBox(width: 6), // ✅ ADDED: spacing
+                  const Icon(Icons.cancel, size: 18),
+                  const SizedBox(width: 6),
                   Text(
                     'Cancel Claim',
                     style: GoogleFonts.dangrek(
-                      fontSize: 15, // ✅ CHANGED: 16→14 to fit better
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1862,7 +1861,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
               ),
             ),
           ),
-          if (widget.showDeleteButton) // ✅ ADDED: Delete button
+          if (widget.showDeleteButton) // Delete button
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.white),
               onPressed: () => _deleteItem(context),

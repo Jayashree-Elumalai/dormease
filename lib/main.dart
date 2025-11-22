@@ -5,23 +5,23 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'services/notification_service.dart';
 
 import 'screens/login_pg.dart';
-import 'screens/admin/admin_sos_detail_pg.dart'; // ✅ ADDED: For notification navigation
+import 'screens/admin/admin_sos_detail_pg.dart'; // notification navigation
 
 import 'package:google_fonts/google_fonts.dart';
 
-// ✅ STEP 1: Global navigator key (for notification navigation)
+//Global navigator key (for notification navigation)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-// ✅ STEP 2: Background message handler (MUST be top-level function)
+//Background message handler (MUST be top-level function)
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // ✅ ADDED: Missing options
+    options: DefaultFirebaseOptions.currentPlatform, // Missing options
   );
 
-  debugPrint('🔔 Background message received: ${message.messageId}');
+  debugPrint('Background message received: ${message.messageId}');
 
-  // ✅ Check if it's an SOS alert
+  // Check if SOS alert
   if (message.data['type'] == 'sos_alert') {
     await NotificationService.showSosNotification(
       alertId: message.data['alertId'] ?? '',
@@ -33,23 +33,23 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
-// ✅ STEP 3: Main function
+// Main function
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // ✅ ADDED: Missing options
+    options: DefaultFirebaseOptions.currentPlatform, // Missing options
   );
 
-  // ✅ Initialize notifications
+  // Initialize notifications
   await NotificationService.initialize();
 
-  // ✅ Set background message handler
+  // Set background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // ✅ Handle foreground messages (when app is open)
+  // Handle foreground messages (when app is open)
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    debugPrint('🔔 Foreground message received: ${message.messageId}');
+    debugPrint('Foreground message received: ${message.messageId}');
 
     if (message.data['type'] == 'sos_alert') {
       await NotificationService.showSosNotification(
@@ -65,7 +65,7 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-// ✅ STEP 4: MyApp widget
+// MyApp widget
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Dormease App',
-      navigatorKey: navigatorKey, // ✅ CRITICAL: Enables notification navigation
+      navigatorKey: navigatorKey, // Enables notification navigation
       theme: ThemeData(
         useMaterial3: true,
         textTheme: GoogleFonts.dangrekTextTheme(),
@@ -119,7 +119,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const LoginScreen(),
-      // ✅ ADDED: Route for notification navigation
+      // Route for notification navigation
       routes: {
         '/admin_sos_detail': (context) {
           final alertId = ModalRoute.of(context)!.settings.arguments as String;

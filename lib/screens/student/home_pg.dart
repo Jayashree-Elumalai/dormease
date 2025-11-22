@@ -5,18 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-// Your actual pages
 import 'connect_pg.dart';
 import 'lost_found_pg.dart';
 import 'parcel_pg.dart';
 import 'report_issue_pg.dart';
 import 'sos_pg.dart';
-import '../login_pg.dart';
 import '/services/auth_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  // Get student's name from db
   Future<String> getUserName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return "User";
@@ -28,6 +27,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   @override
+  //HOME PG UI
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔹 Top row with username + logout
+              // Top bar with username + logout
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -80,50 +80,52 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // 🔹 Announcements section (clickable)
+              // Announcements section
               GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const AnnouncementsPage()), // ✅ correct
+                        builder: (_) => const AnnouncementsPage()),
                   );
                 },
                 child: Container(
                   width: double.infinity,
-                  height: 170, // ✅ fixed height to make the box taller
+                  height: 170,
                   padding: const EdgeInsets.only(
-                    left: 12,   // same as horizontal
-                    right: 12,  // same as horizontal
-                    top: 8,     // smaller top padding
-                    bottom: 4, // bigger bottom padding
+                    left: 12,
+                    right: 12,
+                    top: 8,
+                    bottom: 4,
                   ),
 
                   decoration: BoxDecoration(
                     color: Colors.blue[50],
                     border: Border.all(
-                      color: const Color(0xFF1800AD), // ✅ navy border
+                      color: const Color(0xFF1800AD),
                       width: 3,
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  //Real-time updates from Firestore
                   child: StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('announcements')
-                        .orderBy('timestamp', descending: true)
-                        .limit(1) // ✅ only latest
+                        .orderBy('timestamp', descending: true) // Latest first
+                        .limit(1) //only latest
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
-
+                      // No announcements
                       if (snapshot.data!.docs.isEmpty) {
                         return const Center(child: Text(
                             "No announcements for now",
                             style: TextStyle(color: Colors.grey),));
                       }
 
+                      // Get latest announcement data
                       final doc = snapshot.data!.docs.first;
                       final title = doc['title'] ?? '';
                       final announcement = doc['announcement'] ?? '';
@@ -131,13 +133,14 @@ class HomeScreen extends StatelessWidget {
                           ? (doc['timestamp'] as Timestamp).toDate()
                           : DateTime.now();
 
+                      // Format timestamp
                       final formattedTimestamp =
                       DateFormat('dd MMM yyyy, HH:mm').format(timestamp);
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 🔹 Title row (megaphone + actual title)
+                          // Title row (megaphone + actual title)
                           Center(
                           child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -146,7 +149,7 @@ class HomeScreen extends StatelessWidget {
                                   color: Color(0xFF1800AD), size: 28),
                               const SizedBox(width: 8),
                               Text(
-                                  title, // ✅ actual title from Firestore
+                                  title, // announcement title
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.firaSans(
@@ -161,9 +164,9 @@ class HomeScreen extends StatelessWidget {
 
                           const SizedBox(height: 6),
 
-                          // 🔹 Preview
+                          // Announcement Preview
                           Expanded(
-                            child: SingleChildScrollView(
+                            child: SingleChildScrollView( //scrollable
                               child: Text(
                                 announcement,
                                 style: GoogleFonts.firaSans(
@@ -177,7 +180,7 @@ class HomeScreen extends StatelessWidget {
 
                           const SizedBox(height: 6),
 
-                          // 🔹 Timestamp bottom-right
+                          // Timestamp bottom-right
                           Align(
                             alignment: Alignment.bottomRight,
                             child: Text(
@@ -197,13 +200,14 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // 🔹 Grid (Report Issue, Parcel, Lost & Found, Connect)
+              // FEATURE GRID (2x2) (Report Issue, Parcel, Lost & Found, Connect)
               Expanded(
                 child: GridView.count(
-                  crossAxisCount: 2,
+                  crossAxisCount: 2, //2 columns
                   crossAxisSpacing: 20,
                   mainAxisSpacing: 20,
                   children: [
+                    // REPORT ISSUE button
                     _buildFeatureItem(
                       context,
                       "assets/images/report_issue.png",
@@ -216,6 +220,7 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    // PARCEL button
                     _buildFeatureItem(
                       context,
                       "assets/images/parcel.png",
@@ -228,6 +233,7 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    // LOST & FOUND button
                     _buildFeatureItem(
                       context,
                       "assets/images/lost_found.png",
@@ -240,6 +246,7 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    // CONNECT button
                     _buildFeatureItem(
                       context,
                       "assets/images/connect.png",
@@ -258,7 +265,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // 🔹 SOS button
+              //SOS BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -292,7 +299,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // 🔹 Feature card with navy border + bigger text
+  // Build Feature card
   Widget _buildFeatureItem(
       BuildContext context, String imagePath, String title, VoidCallback onTap) {
     return GestureDetector(

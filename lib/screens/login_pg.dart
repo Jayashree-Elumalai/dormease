@@ -9,7 +9,6 @@ import 'verify_email_pg.dart';
 import 'waiting_approval_pg.dart';
 import '/services/fcm_service.dart';
 
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,21 +17,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final emailController = TextEditingController(); //controller
+  final passwordController = TextEditingController(); //controller
   String error = '';
-  bool _obscurePassword = true;
-  bool _isLoading = false;
+  bool _obscurePassword = true; //password hidden (toggle)
+  bool _isLoading = false; //loading circle
 
-  Future<void> login() async {
-    setState(() {
+  Future<void> login() async { //waiting
+    setState(() { //rebuilding ui
       error = '';
-      _isLoading = true;
+      _isLoading = true; //show loading
     });
 
-    final email = emailController.text.trim();
-    final password = passwordController.text;
+    final email = emailController.text.trim(); //actual email (str)
+    final password = passwordController.text; //actual pass (str)
 
+    //error if pass/email empty
     if (email.isEmpty || password.isEmpty) {
       setState(() {
         error = 'Please enter both email and password';
@@ -42,12 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
+      //return obj
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      final user = credential.user;
+      final user = credential.user; //extracted obj (user)
       if (user == null) {
         setState(() {
           error = 'Login failed. Please try again.';
@@ -56,12 +57,13 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // ✅ Fetch user document
+      // Fetch user document
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
+      //checking user profile exist
       if (!doc.exists) {
         setState(() {
           error = "No user profile found.";
@@ -70,26 +72,28 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      // return actual data
       final data = doc.data()!;
-      final role = data['role'] ?? 'student';
+      final role = data['role'] ?? 'student'; //default to student
 
       if (!mounted) return;
 
-      // ✅ ADMIN FLOW - No email verification or approval needed
+      //Check email verification (admin n student)
+      if (!user.emailVerified) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => VerifyEmailScreen(user: user)),
+        );
+        return;
+      }
+      // ADMIN FLOW - No approval needed
       if (role == 'admin') {
-        debugPrint('🔵 Admin login detected, initializing FCM...');
-        // Update isProfileVerified to true on first login
-        if (data['isProfileVerified'] != true) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .update({'isProfileVerified': true});
-        }
+        debugPrint('Admin login detected, initializing FCM...');
 
-        // ✅ Initialize FCM for admins
-        debugPrint('🔵 Calling FCMService.initializeFCM()...');
+        // Initialize FCM for admins
+        debugPrint('Calling FCMService.initializeFCM()...');
         await FCMService.initializeFCM();
-        debugPrint('🔵 FCM initialization completed');
+        debugPrint('FCM initialization completed');
 
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -99,16 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // ✅ STUDENT FLOW - Check email verification first
-      if (!user.emailVerified) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => VerifyEmailScreen(user: user)),
-        );
-        return;
-      }
-
-      // ✅ STUDENT FLOW - Check approval status
+      // STUDENT FLOW - Check approval status
       final approvalStatus = data['approvalStatus'] ?? 'pending';
 
       if (approvalStatus == 'pending' || approvalStatus == 'rejected') {
@@ -157,6 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  //reset password
   Future<void> resetPassword() async {
     try {
       if (emailController.text.trim().isEmpty) {
@@ -179,12 +175,13 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-
+  //helper functions for responsive UI scaling
   double scaleHeight(double h) => MediaQuery.of(context).size.height * (h / 812);
   double scaleWidth(double w) => MediaQuery.of(context).size.width * (w / 375);
   double scaleFont(double f) => f * MediaQuery.of(context).textScaleFactor;
 
   @override
+  //LOGIN PG UI
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -231,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               SizedBox(height: scaleHeight(32)),
-              TextField(
+              TextField(//email
                 controller: emailController,
                 decoration: InputDecoration(
                   hintText: 'Email',
@@ -268,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               SizedBox(height: scaleHeight(16)),
-              TextField(
+              TextField(//password
                 controller: passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
@@ -282,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Icons.lock_outline,
                     color: Color(0xFF1800AD),
                   ),
-                  suffixIcon: IconButton(
+                  suffixIcon: IconButton(//toggle button
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off : Icons.visibility,
                       color: const Color(0xFF1800AD),

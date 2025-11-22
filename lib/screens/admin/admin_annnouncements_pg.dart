@@ -1,11 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-
-import 'package:dormease_app/screens/login_pg.dart';
 import 'package:dormease_app/screens/admin/admin_lostnfound_pg.dart';
 import 'package:dormease_app/screens/admin/admin_parcel_pg.dart';
 import 'package:dormease_app/screens/admin/admin_report_pg.dart';
@@ -23,13 +20,13 @@ class AdminAnnouncementsPg extends StatefulWidget {
 class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
   int _selectedIndex = 4; // default: announcements tab selected
 
-  // 🔹 ADDED: controllers to get text input
+  // controllers to get text input
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _announcementController = TextEditingController();
 
   @override
   void dispose() {
-    // 🔹 ADDED: dispose controllers to avoid memory leaks
+    // dispose controllers to avoid memory leaks
     _titleController.dispose();
     _announcementController.dispose();
     super.dispose();
@@ -38,6 +35,7 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return; // stay on same page if already selected
 
+    // Determine target page based on index
     Widget targetPage;
     switch (index) {
       case 0:
@@ -65,6 +63,7 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
   }
 
   @override
+  //ADMIN ANNOUNCEMENTS PG UI
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -96,18 +95,18 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
           ),
         ],
       ),
-      // 🔹 CHANGED: replaced the placeholder Center(Text(...)) with Column + announcement section
+      //
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 🔹 Announcements section (inserted here)
+            // Announcements section (create new announcements)
             GestureDetector(
-              onTap: () {
+              onTap: () {//tappable
               },
               child: Container(
                 width: double.infinity,
-                height: 275, // fixed height
+                height: 275,
                 padding: const EdgeInsets.only(
                   left: 12,
                   right: 12,
@@ -126,13 +125,15 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
-                    // 🔹 Title row
+                    // Title input row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.campaign,
                             color: Color(0xFF1800AD), size: 28),
+                        // Title text field
                         Expanded(
+                          // Remove default TextField borders
                           child: Theme(
                             data: Theme.of(context).copyWith(
                               inputDecorationTheme: const InputDecorationTheme(
@@ -142,31 +143,30 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
                                 filled: false,
                               ),
                             ),
-
                             child: TextField(
                               controller: _titleController,
-                              maxLines: 1, // 🔹 only one line
-                              textAlign: TextAlign.center, // keeps it centered like before
+                              maxLines: 1, // only one line
+                              textAlign: TextAlign.center,
                               decoration: const InputDecoration(
                                 hintText: "Title...",
                                 counterText: "",
-                                isDense: true, // ✅ reduces padding
-                                contentPadding: EdgeInsets.only(bottom: 0), // ✅ remove extra padding
+                                isDense: true, //reduces padding
+                                contentPadding: EdgeInsets.only(bottom: 0), //  remove extra padding
                               ),
                               style: GoogleFonts.firaSans(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1800AD),
                               ),
-                              maxLength: 20,
+                              maxLength: 20,// title limited to 20 chars
                             ),
                           ),
                         ),
                       ],
                     ),
-                    // 🔹 Latest announcement input
+                    // announcement input
                     Expanded(
-                      child: Theme(
+                      child: Theme( // Remove default TextField borders
                         data: Theme.of(context).copyWith(
                           inputDecorationTheme: const InputDecorationTheme(
                             border: InputBorder.none,
@@ -178,8 +178,8 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
                         child: TextField(
                           controller: _announcementController,
                           maxLines: null, // allows multiple lines
-                          expands: true,  // fills the available space
-                          maxLength: 300,
+                          expands: true,  // fills available space
+                          maxLength: 300,// Limit to 300 chars
                           decoration: const InputDecoration(
                             hintText: "Enter announcement here...",
                           ),
@@ -193,7 +193,7 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
                     ),
                     const SizedBox(height: 2),
 
-                    // 🔹 Post button
+                    // Post button
                     Align(
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(
@@ -207,9 +207,11 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
                           ),
                         ),
                         onPressed: () async {
+                          // Get trimmed input
                           final title = _titleController.text.trim();
                           final announcement = _announcementController.text.trim();
 
+                          // both fields must be filled
                           if (title.isEmpty || announcement.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -220,7 +222,7 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
                             return;
                           }
 
-                          // 🔹 Save to Firestore
+                          // Save announcment to db
                           await FirebaseFirestore.instance.collection('announcements').add({
                             'title': title,
                             'announcement': announcement,
@@ -251,194 +253,201 @@ class _AdminAnnouncementsPgState extends State<AdminAnnouncementsPg> {
             ),
             const SizedBox(height:10),
 
-      // 🔹 NEW: Announcement list from Firestore
-      Expanded(
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('announcements')
-              .orderBy('timestamp', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final docs = snapshot.data!.docs;
-            if (docs.isEmpty) {
-              return const Center(child: Text("No announcements for now",
-                  style: TextStyle(color: Colors.grey),));
-            }
-            return ListView.builder(
-              itemCount: docs.length,
-              itemBuilder: (context, index) {
-                final data = docs[index];
-                final title = data['title'] ?? '';
-                final announcement = data['announcement'] ?? '';
-                final timestamp = data['timestamp'] != null
-                    ? (data['timestamp'] as Timestamp).toDate()
-                    : DateTime.now();
-                return Card(
-                  color: Colors.blue[50],
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding:EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // 🔹 Title row with delete button
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Center(
+            // Announcement list
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(//Real-time updates
+                stream: FirebaseFirestore.instance
+                    .collection('announcements')
+                    .orderBy('timestamp', descending: true)// latest first
+                    .snapshots(),// real-time listener
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final docs = snapshot.data!.docs;
+
+                  // Empty state
+                  if (docs.isEmpty) {
+                    return const Center(child: Text("No announcements for now",
+                        style: TextStyle(color: Colors.grey),));
+                  }
+
+                  // Build list of announcement cards
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final data = docs[index];
+                      final title = data['title'] ?? '';
+                      final announcement = data['announcement'] ?? '';
+                      final timestamp = data['timestamp'] != null
+                          ? (data['timestamp'] as Timestamp).toDate()
+                          : DateTime.now();
+                      return Card(
+                        color: Colors.blue[50],
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding:EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              //Title row with delete button
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  //Title
+                                  Expanded(
+                                    child: Center(
+                                      child: Text(
+                                        title,
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.firaSans(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF1800AD),
+                                          height: 1.0,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  // DELETE BUTTON
+                                  SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      iconSize: 20,              // smaller icon
+                                      padding: EdgeInsets.zero,  // removes default internal padding
+                                      constraints: const BoxConstraints(), // removes minWidth/minHeight
+                                      splashRadius: 18,
+                                      onPressed: () async {
+                                        // confirmation dialog
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+
+                                            titlePadding: const EdgeInsets.only(top: 12, left: 16, right: 16, bottom:5),
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                                            title: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Center(
+                                                  child: Text(
+                                                    "Delete Announcement",
+                                                    style: GoogleFonts.firaSans(
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.red,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+                                            content: Text(
+                                              "Are you sure you want to delete this announcement?",
+                                              style: GoogleFonts.firaSans(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: const Color(0xFF1800AD),
+                                              ),
+                                            ),
+                                            actionsPadding: const EdgeInsets.symmetric(horizontal: 12),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, false),
+                                                child: Text(
+                                                  "Cancel",
+                                                  style: GoogleFonts.firaSans(
+                                                    fontSize: 14, // 🔹 Bigger font
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey[700],
+                                                  ),
+                                                ),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context, true),
+                                                child: Text(
+                                                  "Delete",
+                                                  style: GoogleFonts.firaSans(
+                                                    fontSize: 14, // 🔹 Bigger font
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        // If confirmed, delete form db
+                                        if (confirm == true) {
+                                          await FirebaseFirestore.instance
+                                              .collection('announcements')
+                                              .doc(data.id)
+                                              .delete();
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text("Announcement deleted"),
+                                              backgroundColor: Colors.red,
+                                            )
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              // Announcement content
+                              Text(
+                                announcement,
+                                style: GoogleFonts.firaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                  height: 1.20,//space between announcment words
+                                ),
+                              ),
+
+                              // Timestamp (bottom-right)
+                              Align(
+                                alignment: Alignment.bottomRight,
                                 child: Text(
-                                  title,
-                                  textAlign: TextAlign.center,
+                                  DateFormat('dd MMM yyyy, HH:mm').format(timestamp),
                                   style: GoogleFonts.firaSans(
-                                    fontSize: 16,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: const Color(0xFF1800AD),
                                     height: 1.0,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                               ),
-                            ),
-
-                        SizedBox(
-                            width: 28, // small tap target width
-                            height: 28, // small tap target height
-                            child: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            iconSize: 20,              // smaller icon
-                            padding: EdgeInsets.zero,  // removes default internal padding
-                            constraints: const BoxConstraints(), // removes minWidth/minHeight
-                            splashRadius: 18,
-                            onPressed: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-
-                                  titlePadding: const EdgeInsets.only(top: 12, left: 16, right: 16, bottom:5),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                                  title: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-
-                                      Center(
-                                        child: Text(
-                                          "Delete Announcement",
-                                          style: GoogleFonts.firaSans(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.red,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-
-                                    ],
-                                  ),
-
-                                  content: Text(
-                                    "Are you sure you want to delete this announcement?",
-                                    style: GoogleFonts.firaSans(
-                                      fontSize: 14, // 🔹 Larger font
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF1800AD), // 🔹 Navy blue
-                                    ),
-                                  ),
-                                  actionsPadding: const EdgeInsets.symmetric(horizontal: 12),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
-                                      child: Text(
-                                        "Cancel",
-                                        style: GoogleFonts.firaSans(
-                                          fontSize: 14, // 🔹 Bigger font
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context, true),
-                                      child: Text(
-                                        "Delete",
-                                        style: GoogleFonts.firaSans(
-                                          fontSize: 14, // 🔹 Bigger font
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                                if (confirm == true) {
-                                  await FirebaseFirestore.instance
-                                      .collection('announcements')
-                                      .doc(data.id)
-                                      .delete();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Announcement deleted"),
-                                      backgroundColor: Colors.red,
-                                    )
-                                  );
-                                }
-                              },
-                            ),
-                        ),
-                        ],
-                        ),
-
-                        Text(
-                          announcement,
-                          style: GoogleFonts.firaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                            height: 1.20,//space between announcment words
+                            ],
                           ),
                         ),
-
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Text(
-                            DateFormat('dd MMM yyyy, HH:mm').format(timestamp),
-                            style: GoogleFonts.firaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF1800AD),
-                              height: 1.0,
-                            ),
-                          ),
-                        ),
-
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
-    ],
-  ),
-),
+      //bottom navbar
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF1800AD),
-        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,// Fixed size items
+        currentIndex: _selectedIndex,// Highlight current page
+        onTap: _onItemTapped,// Handle taps
+        selectedItemColor: const Color(0xFF1800AD),// Selected color
+        unselectedItemColor: Colors.grey,// Unselected color
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.report), label: 'Reports'),
           BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Parcel'),

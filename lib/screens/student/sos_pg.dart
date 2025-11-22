@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-import '../login_pg.dart';
+
 import 'home_pg.dart';
 import 'connect_pg.dart';
 import 'parcel_pg.dart';
@@ -69,7 +69,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
             ? 'Block $block, Room $room'
             : 'Dorm A, Room 302';
         setState(() {
-          _studentDefaultRoom = defaultRoom; // ✅ CHANGED: Store separately
+          _studentDefaultRoom = defaultRoom; // Store separately
           _locationController.text = defaultRoom;
           _isLoading = false;
         });
@@ -327,7 +327,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.red))
-          : SingleChildScrollView( // ✅ CHANGED: SingleChildScrollView → Column (no scrolling)
+          : SingleChildScrollView( // SingleChildScrollView → Column (no scrolling)
         child: Column(
           children: [
             // Header Section
@@ -367,7 +367,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
               ),
             ),
             //const SizedBox(height: 5),
-            // ✅ Emergency Type Buttons (Horizontal Row)
+            // Emergency Type Buttons (Horizontal Row)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -403,7 +403,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
 
             const SizedBox(height: 10),
 
-            // ✅ Center SOS Button (Larger, no surrounding buttons)
+            // Center SOS Button (Larger, no surrounding buttons)
             GestureDetector(
               onTap: _sendSosAlert,
               child: AnimatedBuilder(
@@ -428,7 +428,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(Icons.notifications_active, color: Colors
-                            .white, size: 56), // ✅ INCREASED: 50→56
+                            .white, size: 56),
                         const SizedBox(height: 8),
                         Text(
                           'SOS',
@@ -448,13 +448,13 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
 
             const SizedBox(height: 10),
 
-            // ✅ Location Dropdown with Custom Input
+            // Location Dropdown with Custom Input
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ✅ Dropdown for quick selection
+                  // Dropdown for quick selection
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 4),
@@ -487,14 +487,14 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                         icon: const Icon(Icons.arrow_drop_down, color: Color(
                             0xFF1800AD)),
                         items: [
-                          // ✅ FIXED: Always show student's actual room, not current selected location
+                          // Always show student's actual room, not current selected location
                           if (_studentDefaultRoom.isNotEmpty)
                             DropdownMenuItem(
                               value: _studentDefaultRoom,
-                              // ✅ CHANGED: Use stored default room
+                              //  Use stored default room
                               child: Text(
                                 '🏠 My Room: $_studentDefaultRoom',
-                                // ✅ CHANGED: Always show actual room
+                                //  Always show actual room
                                 style: GoogleFonts.firaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -502,7 +502,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                                 ),
                               ),
                             ),
-                          // ✅ Common locations
+                          // Common locations
                           DropdownMenuItem(
                             value: 'Lobby',
                             child: Text('🏢 Lobby',
@@ -538,7 +538,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                           if (value != null) {
                             setState(() {
                               _locationController.text =
-                                  value; // ✅ Update text field
+                                  value; // Update text field
                             });
                           }
                         },
@@ -548,22 +548,22 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
 
                   const SizedBox(height: 8),
 
-                  // ✅ FIXED: Custom text input with proper padding
+                  //Custom text input with proper padding
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 12),
-                    // ✅ CHANGED: 8→12 for more space
+
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row( // ✅ CHANGED: Wrap in Row to control icon positioning
+                    child: Row(
                       children: [
                         const Icon(
                             Icons.edit, color: Color(0xFF1800AD), size: 18),
                         const SizedBox(width: 12),
-                        // ✅ ADDED: Space between icon and text
-                        Expanded( // ✅ ADDED: Constrain text field width
+
+                        Expanded(
                           child: TextField(
                             controller: _locationController,
                             style: GoogleFonts.firaSans(
@@ -592,11 +592,11 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
             ),
             const SizedBox(height: 8),
 
-            // ✅ Optional Description (Compact, Reduced height)
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
-                padding: const EdgeInsets.all(12), // ✅ REDUCED: 14→12
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
@@ -605,11 +605,11 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                 child: TextField(
                   controller: _descriptionController,
                   maxLines: 3,
-                  // ✅ REDUCED: 4→3
+
                   maxLength: 100,
-                  // ✅ REDUCED: 200→150
+
                   style: GoogleFonts.firaSans(
-                    fontSize: 13, // ✅ REDUCED: 14→13
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
@@ -668,7 +668,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
     return GestureDetector(
       onTap: () => setState(() => _selectedCategory = value),
       child: Container(
-        width: 75, // ✅ REDUCED: 85→75 to fit row
+        width: 75,
         height: 75,
         decoration: BoxDecoration(
           color: isSelected ? color.withOpacity(0.2) : Colors.white,
@@ -689,12 +689,12 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(icon, style: const TextStyle(fontSize: 24)),
-            // ✅ REDUCED: 28→24
+
             const SizedBox(height: 3),
             Text(
               label,
               style: GoogleFonts.firaSans(
-                fontSize: 11, // ✅ REDUCED: 12→11
+                fontSize: 11,
                 fontWeight: FontWeight.w900,
                 color: isSelected ? color : Colors.black,
               ),
@@ -1047,7 +1047,7 @@ class _SosStatusPageState extends State<SosStatusPage> {
     if (confirm != true) return;
 
     try {
-      // ✅ CHANGED: Delete the alert instead of marking as resolved
+      //  Delete the alert
       await FirebaseFirestore.instance
           .collection('sosAlerts')
           .doc(widget.alertId)
@@ -1055,7 +1055,7 @@ class _SosStatusPageState extends State<SosStatusPage> {
 
       if (!context.mounted) return;
 
-      // ✅ Navigate back to home after deletion
+      //Navigate back to home after deletion
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),

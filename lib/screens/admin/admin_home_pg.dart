@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../login_pg.dart';
 import 'admin_annnouncements_pg.dart';
 import 'admin_lostnfound_pg.dart';
 import 'admin_parcel_pg.dart';
 import 'admin_report_pg.dart';
 import 'admin_sos_pg.dart';
-import 'admin_verification_pg.dart'; // ✅ NEW import
+import 'admin_verification_pg.dart';
 import '../../services/auth_service.dart';
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
 
+  //get admin name
   Future<String> getUserName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return "User";
@@ -24,6 +23,7 @@ class AdminHomeScreen extends StatelessWidget {
     return doc.data()?['name'] ?? "User";
   }
 
+  //ADMIN HOME PG UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,12 +76,14 @@ class AdminHomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
+              //grid: 4 feature buttons (2x2)
               Expanded(
                 child: GridView.count(
-                  crossAxisCount: 2,
+                  crossAxisCount: 2,//2 columns
                   crossAxisSpacing: 20,
                   mainAxisSpacing: 20,
                   children: [
+                    // REPORTS button
                     _buildFeatureItem(
                       context,
                       "assets/images/report_issue.png",
@@ -94,6 +96,7 @@ class AdminHomeScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    // PARCEL button
                     _buildFeatureItem(
                       context,
                       "assets/images/parcel.png",
@@ -106,6 +109,7 @@ class AdminHomeScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    // LOST & FOUND button
                     _buildFeatureItem(
                       context,
                       "assets/images/lost_found.png",
@@ -118,6 +122,7 @@ class AdminHomeScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    // ANNOUNCEMENT button
                     _buildFeatureItem(
                       context,
                       "assets/images/announcement.png",
@@ -134,7 +139,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // ✅ NEW: Verify Students Button
+              // Verify Students Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -165,6 +170,7 @@ class AdminHomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              // SOS ALERTS button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -197,7 +203,7 @@ class AdminHomeScreen extends StatelessWidget {
       ),
     );
   }
-
+  //Build feature card ui
   Widget _buildFeatureItem(
       BuildContext context, String imagePath, String title, VoidCallback onTap) {
     return GestureDetector(

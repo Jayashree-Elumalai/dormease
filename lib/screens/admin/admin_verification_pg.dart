@@ -36,7 +36,7 @@ class _AdminVerifyStudentsPgState extends State<AdminVerifyStudentsPg> {
       ),
       body: Column(
         children: [
-          // ✅ Search bar
+          // Search bar
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.grey[100],
@@ -77,7 +77,7 @@ class _AdminVerifyStudentsPgState extends State<AdminVerifyStudentsPg> {
               style: GoogleFonts.dangrek(color: const Color(0xFF1800AD)),
             ),
           ),
-          // ✅ Filter chips
+          // Filter chips
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             color: Colors.grey[100],
@@ -96,7 +96,7 @@ class _AdminVerifyStudentsPgState extends State<AdminVerifyStudentsPg> {
               ),
             ),
           ),
-          // ✅ Student list
+          // Student list
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _getStudentsStream(),
@@ -274,7 +274,7 @@ class _AdminVerifyStudentsPgState extends State<AdminVerifyStudentsPg> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Status badge
+            // Status badge
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -359,7 +359,7 @@ class _AdminVerifyStudentsPgState extends State<AdminVerifyStudentsPg> {
                 ),
               ),
             ],
-            // ✅ Action buttons
+            // Action buttons
             if (status == 'pending') ...[
               const SizedBox(height: 16),
               Row(

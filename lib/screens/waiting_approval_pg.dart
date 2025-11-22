@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'login_pg.dart';
-import 'student/register_pg.dart'; // 🆕 ADDED: Import register page
-import 'update_registration_pg.dart'; // 🆕 ADDED: Import update page
+import 'student/register_pg.dart';
+import 'update_registration_pg.dart';
 import '../services/auth_service.dart';
 
 class WaitingApprovalScreen extends StatefulWidget {
@@ -17,25 +16,28 @@ class WaitingApprovalScreen extends StatefulWidget {
 class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
   bool _checking = false;
 
+  //get user's approval status from db
   Future<Map<String, dynamic>?> _getApprovalStatus() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return null;
+    if (user == null) return null;// not logged in
 
+    //fetch user doc
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .get();
 
-    if (!doc.exists) return null;
+    if (!doc.exists) return null;//no docs
     return doc.data();
   }
 
+  //check if status changed(refresh)
   Future<void> _checkStatus() async {
     setState(() => _checking = true);
 
     try {
       final data = await _getApprovalStatus();
-      if (data == null) {
+      if (data == null) {//unable fetch data
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Unable to fetch status')),
@@ -47,12 +49,11 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
       final status = data['approvalStatus'] ?? 'pending';
 
       if (status == 'approved') {
-        // ✅ Approved - should not be on this screen, but handle it
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Your account has been approved!')),
         );
-        // They can now login normally
+        // logouts and goes to login to pg to relogin
         await AuthService.logout(context);
       } else {
         // Still pending or rejected - just refresh the UI
@@ -68,11 +69,11 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
     }
   }
 
-
-  // 🆕 ADDED: Delete account function
+  // Delete account function (wrong email/student id)
   Future<void> _confirmDeleteAccount() async {
     final passwordController = TextEditingController();
 
+    //show confirmation dialog with pass input
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -120,6 +121,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
 
             ),
             const SizedBox(height: 12),
+            //pass
             TextField(
               controller: passwordController,
               obscureText: true,
@@ -162,6 +164,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
         ),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         actions: [
+          //cancel button
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
@@ -173,8 +176,10 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
               ),
             ),
           ),
+          //confirm delete button
           TextButton(
             onPressed: () {
+              // validate pass
               if (passwordController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -201,10 +206,10 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
         ],
       ),
     );
-
+    //cancelled/didnt put pass
     if (confirm != true || passwordController.text.trim().isEmpty) return;
 
-    // 🆕 ADDED: Execute account deletion
+    // execute account deletion
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
@@ -215,7 +220,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
       if (!mounted) return;
       showDialog(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: false,//cant dismiss by tapping outside
         builder: (context) => Center(
           child: Card(
             child: Padding(
@@ -240,16 +245,15 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
       final email = user.email!;
       final password = passwordController.text.trim();
       final credential = EmailAuthProvider.credential(email: email, password: password);
-
       await user.reauthenticateWithCredential(credential);
 
-      // Delete Firestore document
+      // Delete Firestore db doc
       await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
 
       // Delete Firebase Auth account
       await user.delete();
 
-      // Close loading dialog
+      // close loading dialog
       if (!mounted) return;
       Navigator.pop(context);
 
@@ -274,7 +278,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
     } on FirebaseAuthException catch (e) {
       // Close loading dialog if open
       if (mounted && Navigator.canPop(context)) Navigator.pop(context);
-
+      //handle firebase errors
       String errorMessage;
       if (e.code == 'wrong-password') {
         errorMessage = 'Incorrect password. Please try again.';
@@ -305,14 +309,16 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
     }
   }
 
-  // 🆕 ADDED: Navigate to update info page
+  // Navigate to update info page
   Future<void> _navigateToUpdateInfo() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    //fetch current user data from db
     final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     if (!doc.exists || !mounted) return;
 
+    // Navigate to update page, passing current data
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -328,6 +334,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
   }
 
   @override
+  //APP BAR UI
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -338,6 +345,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
           style: GoogleFonts.dangrek(color: Colors.white),
         ),
         actions: [
+          //logout button
           TextButton(
             onPressed: () => AuthService.logout(context),
             child: Text(
@@ -350,13 +358,15 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
           ),
         ],
       ),
+      //FutureBuilder: fetch data asynchronously n build UI based on result
       body: FutureBuilder<Map<String, dynamic>?>(
-        future: _getApprovalStatus(),
+        future: _getApprovalStatus(),// call func to get status
         builder: (context, snapshot) {
+          //loading state
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
+          //error state: No data
           if (!snapshot.hasData || snapshot.data == null) {
             return Center(
               child: Column(
@@ -379,16 +389,17 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
             );
           }
 
+          //success-data loaded
           final data = snapshot.data!;
           final status = data['approvalStatus'] ?? 'pending';
           final rejectionReason = data['rejectionReason'];
 
-          if (status == 'pending') {
+          //build ui based on status
+          if (status == 'pending') { //showing waiting message
             return _buildPendingUI();
           } else if (status == 'rejected') {
-            return _buildRejectedUI(rejectionReason);
+            return _buildRejectedUI(rejectionReason);//show rejection reason n others
           } else {
-            // Should not happen, but handle approved case
             return _buildApprovedUI();
           }
         },
@@ -430,6 +441,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
+          //check status button
           ElevatedButton.icon(
             onPressed: _checking ? null : _checkStatus,
             style: ElevatedButton.styleFrom(
@@ -463,7 +475,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
 
   // REJECTED UI
   Widget _buildRejectedUI(String? reason) {
-    return SingleChildScrollView( // 🆕 ADDED: Make scrollable for smaller screens
+    return SingleChildScrollView( // scrollable
       padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -490,6 +502,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
             style: GoogleFonts.dangrek(fontSize: 20, color: Colors.black87),
             textAlign: TextAlign.center,
           ),
+          //show rejection reason if got
           if (reason != null && reason.isNotEmpty) ...[
             const SizedBox(height: 16),
             Container(
@@ -534,7 +547,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
           ),
           const SizedBox(height: 15),
 
-          // 🆕 ADDED: Update Information Button
+          // Update Information
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -556,9 +569,10 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
                 ),
 
                 const SizedBox(height: 10),
+                //update button
                 Center(
                   child: SizedBox(
-                    width: 220, // ✂️ NEW: Fixed width instead of double.infinity
+                    width: 220, //
                     child: ElevatedButton.icon(
                       onPressed: _navigateToUpdateInfo,
                       style: ElevatedButton.styleFrom(
@@ -568,7 +582,6 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-
                       icon: const Icon(Icons.edit, color: Colors.white, size: 18),
                       label: Text(
                         'Update Information',
@@ -580,7 +593,6 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
               ],
             ),
           ),
-
 
           // “OR” divider
           Padding(
@@ -613,9 +625,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
             ),
           ),
 
-
-
-          // 🆕 ADDED: Delete Account Button
+          //  Delete Account Button
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -638,7 +648,7 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
                 const SizedBox(height: 10),
                 Center(
                   child: SizedBox(
-                    width: 220, // ✂️ NEW: Fixed width instead of double.infinity
+                    width: 220,
                     child: ElevatedButton.icon(
                       onPressed: _confirmDeleteAccount,
                       style: ElevatedButton.styleFrom(
@@ -660,12 +670,12 @@ class _WaitingApprovalScreenState extends State<WaitingApprovalScreen> {
             ),
           ),
           const SizedBox(height: 10),
-
         ],
       ),
     );
   }
 
+  //APPROVED UI
   Widget _buildApprovedUI() {
     return Padding(
       padding: const EdgeInsets.all(24),

@@ -1,19 +1,19 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'dart:typed_data'; // ✅ ADDED: For Int64List
+import 'dart:typed_data'; //  For Int64List (vibration pattern)
 
 class NotificationService {
+  // Flutter Local Notifications plugin instance
   static final FlutterLocalNotificationsPlugin _notifications =
   FlutterLocalNotificationsPlugin();
 
   /// Initialize local notifications
   static Future<void> initialize() async {
-    // ✅ Android settings
+    // Android settings
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // ✅ iOS settings
+    // iOS settings
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -25,37 +25,41 @@ class NotificationService {
       iOS: iosSettings,
     );
 
+    // Initialize plugin with callback for when user taps notification
     await _notifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
-    // ✅ Create notification channel for SOS (high priority)
+    // Create notification channel for SOS (high priority)
+    //Android 8.0+ requires channels to categorize notifications
     if (Platform.isAndroid) {
-      // ✅ FIXED: Create vibration pattern using Int64List
-      // ✅ Continuous vibration pattern (repeats every 2 seconds)
+      //  Create vibration pattern using Int64List
+      // Continuous vibration pattern (vibrates for 1 second, pauses 1 second, repeats)
       final Int64List vibrationPattern = Int64List.fromList([0, 1000, 1000, 1000, 1000, 1000]);
 
+      // CHANNEL: High-priority SOS notifications
       final AndroidNotificationChannel channel = AndroidNotificationChannel(
         'sos_alerts', // id
         'SOS Alerts', // title
         description: 'Emergency SOS notifications from students',
-        importance: Importance.max, // ✅ Highest priority
-        playSound: true,
-        enableVibration: true,
-        enableLights: true,
-        ledColor: const Color(0xFFFF0000), // ✅ Red LED
-        vibrationPattern: vibrationPattern, // ✅ Use variable
+        importance: Importance.max, // Highest priority
+        playSound: true, // Play notification sound
+        enableVibration: true, // Vibrate device
+        enableLights: true,//flash LED (if available)
+        ledColor: const Color(0xFFFF0000), // Red LED (if available)
+        vibrationPattern: vibrationPattern, //Custom vibration
       );
 
+      // Register channel with Android system
       await _notifications
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
 
-      debugPrint('✅ Notification channel created: sos_alerts');
+      debugPrint('Notification channel created: sos_alerts');
     }
 
-    // ✅ Request permissions (Android 13+)
+    // Request permissions (Android 13+)-introduced runtime notification permission
     if (Platform.isAndroid) {
       await _notifications
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
@@ -66,12 +70,12 @@ class NotificationService {
   /// Handle notification tap (when admin clicks notification)
   static void _onNotificationTapped(NotificationResponse response) {
     debugPrint('🔔 Notification tapped: ${response.payload}');
-    // ✅ Payload contains alertId - navigate to SOS detail page
+    // Payload contains alertId - navigate to SOS detail page
     if (response.payload != null) {
-      // We'll handle navigation in main.dart using a global navigator key
+      // handle navigation in main.dart using a global navigator key
       navigatorKey.currentState?.pushNamed(
-        '/admin_sos_detail',
-        arguments: response.payload, // alertId
+        '/admin_sos_detail',// Route name
+        arguments: response.payload, // Pass alertId as argument
       );
     }
   }
@@ -84,12 +88,12 @@ class NotificationService {
     required String location,
     required String category,
   }) async {
-    debugPrint('📢 Showing SOS notification for alert: $alertId');
+    debugPrint('Showing SOS notification for alert: $alertId');
 
-    // ✅ Format category emoji
+    // Format category emoji
     String categoryEmoji = _getCategoryEmoji(category);
 
-    // ✅ Create big text style for longer content
+    // big text style for longer content
     final BigTextStyleInformation bigTextStyle = BigTextStyleInformation(
       '$studentName ($studentId) needs immediate help at $location',
       htmlFormatBigText: true,
@@ -99,54 +103,55 @@ class NotificationService {
       htmlFormatSummaryText: true,
     );
 
+    // ANDROID: Notification settings
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'sos_alerts', // channel id (must match above)
       'SOS Alerts',
       channelDescription: 'Emergency SOS notifications from students',
-      importance: Importance.max,
-      priority: Priority.max,
-      ticker: 'SOS Emergency Alert',
-      playSound: true,
-      enableVibration: true,
-      enableLights: true,
-      color: const Color(0xFFFF0000), // Red
+      importance: Importance.max, // Maximum importance
+      priority: Priority.max,  // Maximum priority
+      ticker: 'SOS Emergency Alert', // Accessibility text
+      playSound: true, // Play sound
+      enableVibration: true, // Vibrate
+      enableLights: true, // LED (if available)
+      color: const Color(0xFFFF0000), // Red if available
       colorized: true,
-      fullScreenIntent: true, // ✅ CRITICAL: Shows full-screen even when locked
-      category: AndroidNotificationCategory.alarm, // ✅ Bypass Do Not Disturb
-      visibility: NotificationVisibility.public,
-      autoCancel: false, // ✅ Don't auto-dismiss
-      ongoing: true, // ✅ Can't be swiped away
-      styleInformation: bigTextStyle, // ✅ ADDED: Prominent notification style
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm, // Bypass Do Not Disturb
+      visibility: NotificationVisibility.public, // Show on lock screen
+      autoCancel: false, // Don't auto-dismiss
+      ongoing: true, // Can't be swiped away
+      styleInformation: bigTextStyle, // Prominent notification style
     );
 
+    // iOS: Notification settings
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      // sound: 'sos_alert.wav', // ✅ Uncomment when you add custom sound
-      interruptionLevel: InterruptionLevel.critical, // ✅ Bypass silent mode
+      interruptionLevel: InterruptionLevel.critical, // Bypass silent mode
     );
-
+    // Combine platform-specific details
     final NotificationDetails platformDetails = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
-
+    // SHOW NOTIFICATION
     await _notifications.show(
       alertId.hashCode, // unique ID based on alert
       '🚨 SOS EMERGENCY - $categoryEmoji $category',
       '$studentName ($studentId) at $location',
-      platformDetails,
-      payload: alertId, // ✅ Pass alertId for navigation
+      platformDetails,// Platform-specific settings
+      payload: alertId, // Pass alertId for navigation
     );
 
-    debugPrint('✅ Notification shown successfully');
+    debugPrint('Notification shown successfully');
   }
 
   /// Cancel notification (when alert is resolved)
   static Future<void> cancelNotification(String alertId) async {
     await _notifications.cancel(alertId.hashCode);
-    debugPrint('✅ Notification cancelled: $alertId');
+    debugPrint('Notification cancelled: $alertId');
   }
 
   /// Get category emoji
@@ -164,5 +169,5 @@ class NotificationService {
   }
 }
 
-// ✅ Global navigator key (defined here, used in main.dart)
+// Global navigator key (defined here, used in main.dart)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

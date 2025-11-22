@@ -1,10 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../login_pg.dart';
 import 'home_pg.dart';
 import 'connect_pg.dart';
 import 'parcel_pg.dart';
@@ -20,8 +18,9 @@ class AnnouncementsPage extends StatefulWidget {
 }
 
 class _AnnouncementsPageState extends State<AnnouncementsPage> {
-  int _selectedIndex = 2; // pretend "Home" is selected, but force grey color
+  int _selectedIndex = 2; // "Home" is selected
 
+  //Navigate between student pages
   void _onItemTapped(int index) {
     if (index == _selectedIndex && index != 2) return;
 
@@ -52,6 +51,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   }
 
   @override
+  //ANNOUNCMENTS PG UI
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -83,21 +83,23 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
         ],
       ),
 
-      // 🔹 REPLACED body with Firestore announcements list
+      // announcements list in real-time
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('announcements')
-            .orderBy('timestamp', descending: true)
+            .orderBy('timestamp', descending: true)// latest first
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           final docs = snapshot.data!.docs;
+          // Empty state
           if (docs.isEmpty) {
             return const Center(child: Text("No announcements for now",
                 style: TextStyle(color: Colors.grey),));
           }
+          // Build list of announcements
           return ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: docs.length,
@@ -121,6 +123,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Title
                       Center(
                         child: Text(
                           title,
@@ -133,6 +136,8 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                         ),
                       ),
                       const SizedBox(height: 4),
+
+                      // Announcement content
                       Text(
                         announcement,
                         style: GoogleFonts.firaSans(
@@ -143,6 +148,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
                         ),
                       ),
                       const SizedBox(height: 4),
+                      // Timestamp (bottom-right)
                       Align(
                         alignment: Alignment.bottomRight,
                         child: Text(
@@ -163,7 +169,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
         },
       ),
 
-      // keep student nav bar
+      // student bottom navbar
       bottomNavigationBar: Container(
         height: 60,
         decoration: const BoxDecoration(
@@ -190,9 +196,11 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     );
   }
 
+  //  Build custom nav item
   Widget _buildNavItem(IconData icon, String label, int index,
       {bool forceGrey = false}) {
     bool isSelected = _selectedIndex == index;
+    // forceGrey = true makes "Home" grey even though it's selected
     Color color =
     (isSelected && !forceGrey) ? const Color(0xFF1800AD) : Colors.grey;
 

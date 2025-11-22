@@ -9,7 +9,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../login_pg.dart';
 import 'home_pg.dart';
 import 'connect_pg.dart';
 import 'parcel_pg.dart';
@@ -898,7 +897,7 @@ class _AddReportPageState extends State<AddReportPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 counterText: '',
 
-                  // ✅ make validation message larger & clearer
+                  // make validation message larger & clearer
                   errorStyle: GoogleFonts.dangrek(
                     fontSize: 14,
                     color: Colors.red,
@@ -1110,7 +1109,7 @@ class _AddReportPageState extends State<AddReportPage> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 counterText: '',
 
-                // ✅ make validation message larger & clearer
+                // make validation message larger & clearer
                 errorStyle: GoogleFonts.dangrek(
                   fontSize: 14,
                   color: Colors.red,
@@ -1171,7 +1170,7 @@ class _AddReportPageState extends State<AddReportPage> {
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
 
-                // ✅ make validation message larger & clearer
+                // make validation message larger & clearer
                 errorStyle: GoogleFonts.dangrek(
                   fontSize: 14,
                   color: Colors.red,
